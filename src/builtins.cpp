@@ -9,6 +9,7 @@
 
 #include "builtins.hpp"
 
+// Check if two atoms are equal. 
 static bool equal_atoms(const Atom* atom1, const Atom* atom2) {
     assert(atom1);
     assert(atom2);
@@ -40,12 +41,14 @@ static bool equal_atoms(const Atom* atom1, const Atom* atom2) {
     return false;
 }
 
+// Check if two cons cells are equal. 
 static bool equal_cons(const Cons* cons1, const Cons* cons2) {
     assert(cons1);
     assert(cons2);
     return equal(&cons1->car, &cons2->car) && equal(&cons1->cdr, &cons2->cdr);
 }
 
+// Check if two expressions are equal.
 bool equal(const Expr& obj1, const Expr& obj2) {
     if (obj1.type != obj2.type) {
         return false;
@@ -65,30 +68,37 @@ bool equal(const Expr& obj1, const Expr& obj2) {
     return true;
 }
 
+// Check if an expression is nil.
 bool nil_p(const Expr& obj) {
     return symbol_p(obj) && obj.atom.sym == "nil";
 }
 
+// Check if an expression is symbol.
 bool symbol_p(const Expr& obj) {
     return obj.type == Expr::EXPR_ATOM && obj.atom.type == Atom::ATOM_SYMBOL;
 }
 
+// Check if an expression is an integer.
 bool integer_p(const Expr& obj) {
     return obj.type == Expr::EXPR_ATOM && obj.atom.type == Atom::ATOM_INTEGER;
 }
 
+// Check if an expression is a real.
 bool real_p(const Expr& obj) {
     return obj.type == Expr::EXPR_ATOM && obj.atom.type == Atom::ATOM_REAL;
 }
 
+// Check if an expression is string.
 bool string_p(const Expr& obj) {
     return obj.type == Expr::EXPR_ATOM && obj.atom.type == Atom::ATOM_STRING;
 }
 
+// Check if an expression is a cons.
 bool cons_p(const Expr& obj) {
     return obj.type == Expr::EXPR_CONS;
 }
 
+// Check if an expression is a list.
 bool list_p(const Expr& obj) {
     if (nil_p(obj)) {
         return true;
@@ -101,6 +111,7 @@ bool list_p(const Expr& obj) {
     return false;
 }
 
+// Check if an expression is a list of symbols.
 bool list_of_symbols_p(const Expr& obj) {
     if (nil_p(obj)) {
         return true;
@@ -113,10 +124,12 @@ bool list_of_symbols_p(const Expr& obj) {
     return false;
 }
 
+// Check if an expression is a lambda.
 bool lambda_p(const Expr& obj) {
     return obj.type == Expr::EXPR_ATOM && obj.atom.type == Atom::ATOM_LAMBDA;
 }
 
+// Calculate length of the list.
 long int length_of_list(const Expr& obj) {
     long int count = 0;
 
@@ -128,12 +141,14 @@ long int length_of_list(const Expr& obj) {
     return count;
 }
 
+// Some special forms.
 constexpr char* specials[] = {
     "set", "quote", "begin",
     "defun", "lambda", "λ",
     "when", "quasiquote"
 };
 
+// Check if a string is a special form.
 bool is_special(const std::string& name) {
     assert(!name.empty());
 
@@ -147,6 +162,7 @@ bool is_special(const std::string& name) {
     return false;
 }
 
+// Create a list from a format string and arguments.
 Cons* list_rec(const std::string& format, ...) {
     va_list args;
     va_start(args, format);
@@ -192,7 +208,6 @@ Cons* list_rec(const std::string& format, ...) {
 
     return head;
 }
-
 Expr list(const std::string& format, ...) {
     va_list args;
     va_start(args, format);
@@ -203,6 +218,7 @@ Expr list(const std::string& format, ...) {
     return result;
 }
 
+// Create an expression from a boolean value.
 Expr bool_as_expr(bool condition) {
     return condition ? Expr{ .type = Expr::EXPR_ATOM, .atom = {.type = Atom::ATOM_ATOM, .atom = T} }
     : Expr{ .type = Expr::EXPR_ATOM, .atom = {.type = Atom::ATOM_ATOM, .atom = NIL} };

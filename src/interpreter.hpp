@@ -1,6 +1,8 @@
 #ifndef INTERPRETER_H_
 #define INTERPRETER_H_
 
+#pragma once
+
 #include <stdexcept>
 #include <string>
 #include <system_error>

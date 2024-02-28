@@ -1,3 +1,5 @@
+#pragma once
+
 #include <assert.h>
 #include <string.h>
 #include <vector>
@@ -459,17 +461,15 @@ struct LoadFn {
 
         ParseResult parse_result = read_all_exprs_from_file(gc, filename);
         if (parse_result.is_error) {
-            /* TODO(#599): (load) does not provide position of the parse error  */
-            return read_error(gc, parse_result.error_message, 0);
+            // Include the line number and column number in the error message
+            return read_error(gc, parse_result.error_message, parse_result.line, parse_result.column);
         }
 
         return eval_block(gc, scope, parse_result.expr);
     }
 };
 
-// TODO(#672): append does not work with arbitrary amount of arguments
-// TODO(#673): append is implemented recursively
-//   It's very StackOverflow prone
+
 struct AppendFn {
     Gc* gc;
     Scope* scope;
@@ -478,32 +478,35 @@ struct AppendFn {
         (void)gc;
         assert(scope);
 
-        Expr xs = void_expr();
-        Expr ys = void_expr();
-        EvalResult result = match_list(gc, "ee", args, &xs, &ys);
-        if (result.is_error) {
-            return result;
+        if (nil_p(args)) {
+            return eval_success(NIL(gc));
         }
 
+        return append_helper(*this, gc, scope, args);
+    }
+
+private:
+    EvalResult append_helper(Gc* gc, Scope* scope, Expr xs) {
         if (nil_p(xs)) {
-            return eval_success(ys);
+            return eval_success(NIL(gc));
         }
 
         Expr xs1 = void_expr();
         Expr x = void_expr();
-        result = match_list(gc, "e*", xs, &x, &xs1);
+        EvalResult result = match_list(gc, "e*", xs, &x, &xs1);
         if (result.is_error) {
             return result;
         }
 
-        result = append(*this, gc, scope, list(gc, "ee", xs1, ys));
-        if (result.is_error) {
-            return result;
+        EvalResult result_xs1 = append_helper(gc, scope, xs1);
+        if (result_xs1.is_error) {
+            return result_xs1;
         }
 
-        return eval_success(CONS(gc, x, result.expr));
+        return eval_success(CONS(gc, x, result_xs1.expr));
     }
 };
+
 
 void load_std_library(Gc* gc, Scope* scope) {
     set_scope_value(gc, scope, SYMBOL(gc, "car"), NATIVE(gc, car, NULL));

@@ -1,5 +1,7 @@
 // scope.cpp
 
+#pragma once
+
 #include <assert.h>
 #include "scope.hpp"
 

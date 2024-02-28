@@ -1,5 +1,7 @@
 // gc.cpp
 
+#pragma once
+
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
@@ -8,6 +10,7 @@
 #include <memory>
 #include <vector>
 #include <string>
+
 #include "builtins.hpp"
 #include "expr.hpp"
 #include "gc.hpp"

@@ -1,5 +1,7 @@
 // parser.cpp
 
+#pragma once
+
 #include <assert.h>
 #include <cctype>
 #include <cerrno>
@@ -95,26 +97,55 @@ static ParseResult parse_list(Gc *gc, Token current_token)
     return parse_success(cons_as_expr(list), cdr.end);
 }
 
-static ParseResult parse_string(Gc *gc, Token current_token)
+
+static ParseResult parse_string(Gc* gc, Token current_token)
 {
     if (current_token.begin[0] != '"') {
         return parse_failure("Expected \"", current_token.begin);
     }
 
-    if (current_token.end[-1] != '"') {
-        return parse_failure("Unclosed string", current_token.begin);
+    std::string str;
+    bool escaped = false;
+
+    for (const char* c = current_token.begin + 1; *c != 0; ++c) {
+        if (escaped) {
+            switch (*c) {
+            case 'n':
+                str += '\n';
+                break;
+            case 'r':
+                str += '\r';
+                break;
+            case 't':
+                str += '\t';
+                break;
+            case '\\':
+                str += '\\';
+                break;
+            case '\"':
+                str += '"';
+                break;
+            default:
+                return parse_failure("Invalid escaped character", c);
+            }
+            escaped = false;
+        }
+        else if (*c == '\\') {
+            escaped = true;
+        }
+        else if (*c == '"') {
+            return parse_success(
+                atom_as_expr(create_string_atom(gc, str.c_str(), nullptr)),
+                c + 1);
+        }
+        else {
+            str += *c;
+        }
     }
 
-    if (current_token.begin + 1 == current_token.end) {
-        return parse_success(atom_as_expr(create_string_atom(gc, "", nullptr)),
-                             current_token.end);
-    }
-
-    return parse_success(
-        atom_as_expr(
-            create_string_atom(gc, current_token.begin + 1, current_token.end - 1)),
-        current_token.end);
+    return parse_failure("Unclosed string", current_token.begin);
 }
+
 
 static ParseResult parse_integer(Gc *gc, Token current_token)
 {
@@ -163,7 +194,6 @@ static ParseResult parse_expr(Gc *gc, Token current_token)
 
     switch (current_token.begin[0]) {
     case '(': return parse_list(gc, current_token);
-    /* TODO(#292): parser does not support escaped string characters */
     case '"': return parse_string(gc, current_token);
     case '\'': {
         ParseResult result = parse_expr(gc, next_token(current_token.end));
@@ -214,6 +244,7 @@ static ParseResult parse_expr(Gc *gc, Token current_token)
     return parse_symbol(gc, current_token);
 }
 
+
 ParseResult read_expr_from_string(Gc *gc, const std::string &str)
 {
     assert(gc);
@@ -256,14 +287,24 @@ ParseResult read_all_exprs_from_string(Gc *gc, const std::string &str)
     return parse_success(cons_as_expr(head), parse_result.end);
 }
 
+ParseResult parse_io_failure(int errno)
+{
+    ParseResult result = {
+        .is_error = true,
+        .error_message = std::strerror(errno),
+        .end = nullptr
+    };
+
+    return result;
+}
+
 ParseResult read_expr_from_file(Gc *gc, const std::string &filename)
 {
     assert(filename.size() > 0);
 
     std::ifstream stream(filename, std::ios::binary);
     if (!stream) {
-        /* TODO(#307): ParseResult should not be used for reporting IO failures */
-        return parse_failure(std::strerror(errno), nullptr);
+        return parse_io_failure(errno);
     }
 
     if (stream.seekg(0, std::ios::end) != std::ios::end) {
@@ -296,12 +337,11 @@ ParseResult read_expr_from_file(Gc *gc, const std::string &filename)
     return result;
 }
 
-/* TODO(#598): duplicate code in read_all_exprs_from_file and read_expr_from_file  */
 ParseResult read_all_exprs_from_file(Gc *gc, const std::string &filename)
 {
     std::ifstream stream(filename, std::ios::binary);
     if (!stream) {
-        return parse_failure(std::strerror(errno), nullptr);
+        return parse_io_failure(errno);
     }
 
     if (stream.seekg(0, std::ios::end) != std::ios::end) {
@@ -356,18 +396,55 @@ ParseResult parse_failure(const std::string &error_message, const char *end)
     return result;
 }
 
-void print_parse_error(FILE *stream, const std::string &str, ParseResult result)
+
+static std::string trim_whitespace(const std::string& str) {
+    size_t start = str.find_first_not_of(" \t");
+    size_t end = str.find_last_not_of(" \t");
+    return str.substr(start, end - start + 1);
+}
+
+
+void print_parse_error(FILE* stream, const std::string& str, ParseResult result)
 {
-    /* TODO(#294): print_parse_error doesn't support multiple lines */
     if (!result.is_error) {
         return;
     }
 
+    size_t line_number = 1;
+    size_t column_number = 1;
+    size_t current_column = 1;
+
+    for (const char* c = str.c_str(); c < result.end; ++c) {
+        if (*c == '\n') {
+            line_number++;
+            column_number = current_column;
+        }
+        else {
+            current_column++;
+        }
+    }
+
+    fprintf(stream, "Parse error at line %zu, column %zu:\n", line_number, column_number);
+
     if (result.end) {
-        fprintf(stream, "%s\n", str.c_str());
-        for (size_t i = 0; i < (size_t) (result.end - str.c_str()); ++i) {
+        std::string trimmed_str = trim_whitespace(std::string(str.begin(), result.end));
+        size_t line_length = trimmed_str.size();
+
+        for (size_t i = 0; i < line_number - 1; ++i) {
+            fprintf(stream, "%s\n", trimmed_str.c_str());
+        }
+
+        for (size_t i = 0; i < column_number - 1; ++i) {
             fprintf(stream, " ");
         }
+
+        size_t start = std::max((size_t)0, column_number - 20);
+        size_t end = std::min(line_length, column_number + 20);
+
+        for (size_t i = start; i < end; ++i) {
+            fprintf(stream, "%c", trimmed_str[i]);
+        }
+
         fprintf(stream, "^\n");
     }
 

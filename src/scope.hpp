@@ -1,6 +1,8 @@
 #ifndef SCOPE_H_
 #define SCOPE_H_
 
+#pragma once
+
 #include "expr.hpp"
 #include "builtins.hpp"
 

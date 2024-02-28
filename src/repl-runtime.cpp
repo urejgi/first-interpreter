@@ -1,5 +1,7 @@
 // repl-runtime.cpp
 
+#pragma once
+
 #include <cassert>
 #include <iostream>
 #include <string>

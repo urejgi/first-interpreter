@@ -1,12 +1,15 @@
 #ifndef EXPR_H_
 #define EXPR_H_
 
+#pragma once
+
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 
-class Gc;
+#include "gc.cpp"
+
 class Scope;
 
 struct Cons;

@@ -1,4 +1,5 @@
 // interpreter.cpp
+#pragma once
 
 #include <cassert>
 #include <cmath>
@@ -10,8 +11,9 @@
 #include "expr.hpp"
 #include "interpreter.hpp"
 #include "scope.hpp"
+#include "gc.cpp"
 
-struct EvalResult eval_success(Expr expr)
+EvalResult eval_success(Expr expr)
 {
     EvalResult result = {
         .is_error = false,
@@ -21,7 +23,7 @@ struct EvalResult eval_success(Expr expr)
     return result;
 }
 
-struct EvalResult eval_failure(Expr error)
+EvalResult eval_failure(Expr error)
 {
     EvalResult result = {
         .is_error = true,
@@ -130,7 +132,7 @@ EvalResult call_lambda(Gc *gc,
 
     if (!list_p(args)) {
         return eval_failure(CONS(gc,
-                                 SYMBOL(gc, "expected-list"),
+                                 SYMBOL(gc, "expected-arguments"),
                                  args));
     }
 
@@ -147,9 +149,9 @@ EvalResult call_lambda(Gc *gc,
     };
     push_scope_frame(gc, &scope, vars, args);
 
-    Expr body = lambda.atom->lambda.body;
-
     EvalResult result = eval_success(NIL(gc));
+
+    Expr body = lambda.atom->lambda.body;
 
     while (!nil_p(body)) {
         result = eval(gc, &scope, body.cons->car);
@@ -252,15 +254,12 @@ EvalResult car(Gc *gc, Scope *scope, Expr args)
     return eval_success(CAR(xs));
 }
 
-EvalResult match_list(Gc *gc, const char *format, Expr xs, ...)
-{
+EvalResult match_list(Gc* gc, const char* format, Expr xs, ...) {
     va_list args_list;
     va_start(args_list, xs);
 
-    // TODO(#1098): match_list does not support real numbers
-
     long int i = 0;
-    for (i = 0; *format != 0 && !nil_p(xs); ++i) {
+    for (;*format != 0 && !nil_p(xs);) {
         if (!cons_p(xs)) {
             va_end(args_list);
             return wrong_argument_type(gc, "consp", xs);
@@ -275,9 +274,21 @@ EvalResult match_list(Gc *gc, const char *format, Expr xs, ...)
                 return wrong_argument_type(gc, "integerp", x);
             }
 
-            long int *p = va_arg<long int*>(args_list, long int *);
+            long int* p = va_arg<long int*>(args_list, long int*);
             if (p != NULL) {
                 *p = x.atom->num;
+            }
+        } break;
+
+        case 'f': {
+            if (!real_p(x)) {
+                va_end(args_list);
+                return wrong_argument_type(gc, "realp", x);
+            }
+
+            double* p = va_arg<double*>(args_list, double*);
+            if (p != NULL) {
+                *p = x.atom->real;
             }
         } break;
 
@@ -287,7 +298,7 @@ EvalResult match_list(Gc *gc, const char *format, Expr xs, ...)
                 return wrong_argument_type(gc, "stringp", x);
             }
 
-            const char **p = va_arg<const char**>(args_list, const char**);
+            const char** p = va_arg<const char**>(args_list, const char**);
             if (p != NULL) {
                 *p = x.atom->str;
             }
@@ -299,19 +310,19 @@ EvalResult match_list(Gc *gc, const char *format, Expr xs, ...)
                 return wrong_argument_type(gc, "symbolp", x);
             }
 
-            const char **p = va_arg<const char**>(args_list, const char**);
+            const char** p = va_arg<const char**>(args_list, const char**);
             if (p != NULL) {
                 *p = x.atom->sym;
             }
         } break;
 
         case 'e': {
-            Expr *p = va_arg<Expr*>(args_list, Expr*);
+            Expr* p = va_arg<Expr*>(args_list, Expr*);
             *p = x;
         } break;
 
         case '*': {
-            Expr *p = va_arg<Expr*>(args_list, Expr*);
+            Expr* p = va_arg<Expr*>(args_list, Expr*);
             if (p != NULL) {
                 *p = xs;
             }
@@ -326,7 +337,7 @@ EvalResult match_list(Gc *gc, const char *format, Expr xs, ...)
     }
 
     if (*format == '*' && nil_p(xs)) {
-        Expr *p = va_arg<Expr*>(args_list, Expr*);
+        Expr* p = va_arg<Expr*>(args_list, Expr*);
         if (p != NULL) {
             *p = NIL(gc);
         }

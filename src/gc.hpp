@@ -1,6 +1,8 @@
 #ifndef GC_H_
 #define GC_H_
 
+#pragma once
+
 #include "expr.hpp"
 
 class Gc

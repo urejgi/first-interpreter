@@ -1,6 +1,8 @@
 #ifndef PARSER_H_
 #define PARSER_H_
 
+#pragma once
+
 #include <fstream>
 #include <string>
 #include <system_error>

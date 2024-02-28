@@ -1,12 +1,14 @@
 // expr.cpp
 
+#pragma once
+
 #include <assert.h>
 #include <stdio.h>
 #include <new>
 #include <stdlib.h>
 #include <string.h>
 
-#include <expr.hpp>
+#include "expr.hpp"
 
 Expr atom_as_expr(Atom *atom)
 {
@@ -336,23 +338,21 @@ int atom_as_sexpr(Atom *atom, char *output, size_t n)
     return 0;
 }
 
-int cons_as_sexpr(Cons *head, char *output, size_t n)
+int cons_as_sexpr(Cons* head, char* output, size_t n)
 {
     assert(head);
     assert(output);
 
-    /* TODO(#378): cons_as_sexpr does not handle encoding errors of snprintf */
+    Cons* cons = head;
 
-    Cons *cons = head;
-
-    int m = (int) n;
+    int m = (int)n;
 
     int c = snprintf(output, n, "(");
     if (m - c <= c) {
         return c;
     }
 
-    c += expr_as_sexpr(cons->car, output + c, (size_t) (m - c));
+    c += expr_as_sexpr(cons->car, output + c, (size_t)(m - c));
     if (m - c <= 0) {
         return c;
     }
@@ -360,12 +360,12 @@ int cons_as_sexpr(Cons *head, char *output, size_t n)
     while (cons->cdr.type == EXPR_CONS) {
         cons = cons->cdr.cons;
 
-        c += snprintf(output + c, (size_t) (m - c), " ");
+        c += snprintf(output + c, (size_t)(m - c), " ");
         if (m - c <= 0) {
             return c;
         }
 
-        c += expr_as_sexpr(cons->car, output + c, (size_t) (m - c));
+        c += expr_as_sexpr(cons->car, output + c, (size_t)(m - c));
         if (m - c <= 0) {
             return c;
         }
@@ -374,18 +374,18 @@ int cons_as_sexpr(Cons *head, char *output, size_t n)
     if (cons->cdr.atom->type != ATOM_SYMBOL ||
         strcmp("nil", cons->cdr.atom->sym) != 0) {
 
-        c += snprintf(output + c, (size_t) (m - c), " . ");
+        c += snprintf(output + c, (size_t)(m - c), " . ");
         if (m - c <= 0) {
             return c;
         }
 
-        c += expr_as_sexpr(cons->cdr, output + c, (size_t) (m - c));
+        c += expr_as_sexpr(cons->cdr, output + c, (size_t)(m - c));
         if (m - c <= 0) {
             return c;
         }
     }
 
-    c += snprintf(output + c, (size_t) (m - c), ")");
+    c += snprintf(output + c, (size_t)(m - c), ")");
     if (m - c <= 0) {
         return c;
     }

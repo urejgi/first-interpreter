@@ -1,5 +1,6 @@
 // str.cpp
 
+#pragma once
 
 #include <assert.h>
 #include <cstring>

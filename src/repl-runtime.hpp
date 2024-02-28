@@ -1,6 +1,8 @@
 #ifndef REPL_RUNTIME_H_
 #define REPL_RUNTIME_H_
 
+#pragma once
+
 #include "gc.hpp"
 #include "scope.hpp"
 
