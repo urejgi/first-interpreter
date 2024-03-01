@@ -142,7 +142,7 @@ long int length_of_list(const Expr& obj) {
 }
 
 // Some special forms.
-constexpr char* specials[] = {
+constexpr std::string specials[] = {
     "set", "quote", "begin",
     "defun", "lambda", "λ",
     "when", "quasiquote"
@@ -152,7 +152,7 @@ constexpr char* specials[] = {
 bool is_special(const std::string& name) {
     assert(!name.empty());
 
-    size_t n = sizeof(specials) / sizeof(const char*);
+    size_t n = sizeof(specials) / sizeof(const std::string);
     for (size_t i = 0; i < n; ++i) {
         if (name == specials[i]) {
             return true;
@@ -170,7 +170,7 @@ Cons* list_rec(const std::string& format, ...) {
     Cons* head = nullptr;
     Cons** tail = &head;
 
-    for (const char* c = format.c_str(); *c; ++c) {
+    for (const std::string c = format.c_str(); *c; ++c) {
         switch (*c) {
         case 'd': {
             int p = va_arg(args, int);
@@ -179,13 +179,13 @@ Cons* list_rec(const std::string& format, ...) {
         }
 
         case 's': {
-            const char* p = va_arg(args, const char*);
+            const std::string p = va_arg(args, const std::string);
             *tail = new Cons{ .car = new Atom{.type = Atom::ATOM_STRING, .str = p} };
             break;
         }
 
         case 'q': {
-            const char* p = va_arg(args, const char*);
+            const std::string p = va_arg(args, const std::string);
             *tail = new Cons{ .car = new Atom{.type = Atom::ATOM_SYMBOL, .sym = p} };
             break;
         }

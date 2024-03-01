@@ -95,8 +95,8 @@ TEST(match_list_test)
         CONS(gc, INTEGER(gc, 1), INTEGER(gc, 2)));
 
     long int d = 0;
-    const char* s = NULL;
-    const char* q = NULL;
+    const std::string s = NULL;
+    const std::string q = NULL;
     struct Expr e = NIL(gc);
 
     struct EvalResult result = match_list(gc, "dsqe", input, &d, &s, &q, &e);

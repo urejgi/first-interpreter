@@ -10,7 +10,8 @@
 
 #include "expr.hpp"
 
-Expr atom_as_expr(Atom *atom)
+// Create an Expr from an Atom.
+Expr atom_as_expr(const Atom& atom)
 {
     Expr expr = {
         .type = EXPR_ATOM,
@@ -20,7 +21,8 @@ Expr atom_as_expr(Atom *atom)
     return expr;
 }
 
-Expr cons_as_expr(Cons *cons)
+// Create an Expr from a Cons.
+Expr cons_as_expr(const Cons& cons)
 {
     Expr expr = {
         .type = EXPR_CONS,
@@ -30,6 +32,7 @@ Expr cons_as_expr(Cons *cons)
     return expr;
 }
 
+// Create a void Expr.
 Expr void_expr(void)
 {
     Expr expr = {
@@ -39,7 +42,11 @@ Expr void_expr(void)
     return expr;
 }
 
-void print_atom_as_sexpr(FILE *stream, Atom *atom)
+
+// An S-expression is the fundamental unit of storage in Lisp.
+
+// Print an Atom as an S - expression.
+void print_atom_as_sexpr(FILE *stream, const Atom& atom)
 {
     assert(atom);
 
@@ -70,6 +77,7 @@ void print_atom_as_sexpr(FILE *stream, Atom *atom)
     }
 }
 
+// Print a Cons as an S-expression.
 void print_cons_as_sexpr(FILE *stream, Cons *head)
 {
     assert(head);
@@ -94,6 +102,7 @@ void print_cons_as_sexpr(FILE *stream, Cons *head)
     fprintf(stream, ")");
 }
 
+// Print an Expr as an S-expression.
 void print_expr_as_sexpr(FILE *stream, Expr expr)
 {
     switch (expr.type) {
@@ -110,6 +119,7 @@ void print_expr_as_sexpr(FILE *stream, Expr expr)
     }
 }
 
+// Destroy an Expression.
 void destroy_expr(Expr expr)
 {
     switch (expr.type) {
@@ -126,6 +136,7 @@ void destroy_expr(Expr expr)
     }
 }
 
+// Create a new Cons.
 Cons *create_cons(Gc *gc, Expr car, Expr cdr)
 {
     Cons *cons = new Cons;
@@ -137,11 +148,13 @@ Cons *create_cons(Gc *gc, Expr car, Expr cdr)
     return cons;
 }
 
+// Destroy a Cons.
 void destroy_cons(Cons *cons)
 {
     delete cons;
 }
 
+//  Create a real Atom.
 Atom *create_real_atom(Gc *gc, float real)
 {
     Atom *atom = new Atom;
@@ -156,6 +169,7 @@ Atom *create_real_atom(Gc *gc, float real)
     return atom;
 }
 
+// Create an integer Atom.
 Atom *create_integer_atom(Gc *gc, long int num)
 {
     Atom *atom = new Atom;
@@ -170,7 +184,8 @@ Atom *create_integer_atom(Gc *gc, long int num)
     return atom;
 }
 
-Atom *create_string_atom(Gc *gc, const char *str, const char *str_end)
+// Create a string Atom.
+Atom *create_string_atom(Gc *gc, const std::string& str, const std::string& str_end)
 {
     Atom *atom = new Atom;
 
@@ -202,7 +217,8 @@ error:
     return NULL;
 }
 
-Atom *create_symbol_atom(Gc *gc, const char *sym, const char *sym_end)
+// Create a symbol Atom.
+Atom *create_symbol_atom(Gc *gc, const std::string& sym, const std::string& sym_end)
 {
     Atom *atom = new Atom;
 
@@ -234,6 +250,7 @@ error:
     return NULL;
 }
 
+// Create a lambda Atom.
 Atom *create_lambda_atom(Gc *gc, Expr args_list, Expr body, Expr envir)
 {
     Atom *atom = new Atom;
@@ -261,6 +278,7 @@ error:
     return NULL;
 }
 
+// Create a native Atom.
 Atom *create_native_atom(Gc *gc, NativeFunction fun, void *param)
 {
     Atom *atom = new Atom;
@@ -287,6 +305,7 @@ error:
     return NULL;
 }
 
+// Destroy an Atom.
 void destroy_atom(Atom *atom)
 {
     switch (atom->type) {
@@ -306,7 +325,8 @@ void destroy_atom(Atom *atom)
     delete atom;
 }
 
-int atom_as_sexpr(Atom *atom, char *output, size_t n)
+// Convert an Atom to an S - expression.
+int atom_as_sexpr(Atom *atom, std::string output, size_t n)
 {
     assert(atom);
     assert(output);
@@ -338,6 +358,7 @@ int atom_as_sexpr(Atom *atom, char *output, size_t n)
     return 0;
 }
 
+// Convert an Cons to an S - expression.
 int cons_as_sexpr(Cons* head, char* output, size_t n)
 {
     assert(head);
@@ -393,7 +414,8 @@ int cons_as_sexpr(Cons* head, char* output, size_t n)
     return c;
 }
 
-int expr_as_sexpr(Expr expr, char *output, size_t n)
+// Convert an Expr to an S - expression as a string.
+int expr_as_sexpr(Expr expr, std::string output, size_t n)
 {
     switch(expr.type) {
     case EXPR_ATOM:
@@ -409,7 +431,8 @@ int expr_as_sexpr(Expr expr, char *output, size_t n)
     return 0;
 }
 
-const char *expr_type_as_string(ExprType expr_type)
+// Convert ExprType to a string representation.
+const std::string&expr_type_as_string(ExprType expr_type)
 {
     switch (expr_type) {
     case EXPR_ATOM: return "EXPR_ATOM";
@@ -420,7 +443,8 @@ const char *expr_type_as_string(ExprType expr_type)
     return "";
 }
 
-const char *atom_type_as_string(AtomType atom_type)
+// Correlate Atom type to it's string representation.
+const std::string&atom_type_as_string(AtomType atom_type)
 {
     switch (atom_type) {
     case ATOM_SYMBOL: return "ATOM_SYMBOL";
@@ -434,3 +458,9 @@ const char *atom_type_as_string(AtomType atom_type)
     return "";
 }
 
+/*
+May be improved like that:
+* Usage of const references (const Expr& expr) instead of values (Expr expr).
+*  Instead of using raw pointers, consider using smart pointers
+    (std::unique_ptr, std::shared_ptr) to manage memory automatically and avoid memory leaks.
+*/

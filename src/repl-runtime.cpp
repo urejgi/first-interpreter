@@ -16,6 +16,7 @@
 static Gc *gc;
 static Scope *scope;
 
+// Native function to inspect Garbage Collector.
 static EvalResult gcInspectAdapter(void *param, Gc *_gc, Scope *_scope, Expr args)
 {
     assert(_gc);
@@ -28,6 +29,7 @@ static EvalResult gcInspectAdapter(void *param, Gc *_gc, Scope *_scope, Expr arg
     return eval_success(NIL(_gc));
 }
 
+// Native function to quit the REPL.
 static EvalResult quit(void *param, Gc *_gc, Scope *_scope, Expr args)
 {
     assert(_gc);
@@ -40,6 +42,7 @@ static EvalResult quit(void *param, Gc *_gc, Scope *_scope, Expr args)
     return eval_success(NIL(_gc));
 }
 
+// Native function to get the value of a scope.
 static EvalResult getScope(void *param, Gc *_gc, Scope *_scope, Expr args)
 {
     assert(_gc);
@@ -50,13 +53,14 @@ static EvalResult getScope(void *param, Gc *_gc, Scope *_scope, Expr args)
     return eval_success(_scope->expr);
 }
 
+// Native function for console output.
 static EvalResult print(void *param, Gc *_gc, Scope *_scope, Expr args)
 {
     assert(_gc);
     assert(_scope);
     (void) param;
 
-    const char *s = nullptr;
+    const std::string&s = nullptr;
     EvalResult result = match_list(_gc, "s", args, &s);
     if (result.is_error) {
         return result;
@@ -67,6 +71,7 @@ static EvalResult print(void *param, Gc *_gc, Scope *_scope, Expr args)
     return eval_success(NIL(_gc));
 }
 
+// Native function to load REPL's runtime.
 void load_repl_runtime(Gc *_gc, Scope *_scope)
 {
     gc = _gc;

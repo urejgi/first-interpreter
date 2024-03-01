@@ -18,9 +18,9 @@ struct Scope
 
 Scope create_scope(Gc* gc);
 
-Expr get_scope_value(const Scope* scope, const Expr& name);
-void set_scope_value(Gc* gc, Scope* scope, const Expr& name, const Expr& value);
-void push_scope_frame(Gc* gc, Scope* scope, const Expr& vars, const Expr& args);
+Expr get_scope_value(const Scope* scope, Expr name);
+void set_scope_value(Gc* gc, Scope* scope, Expr name, Expr value);
+void push_scope_frame(Gc* gc, Scope* scope, Expr vars, Expr args);
 void pop_scope_frame(Gc* gc, Scope* scope);
 
 #endif  // SCOPE_H_

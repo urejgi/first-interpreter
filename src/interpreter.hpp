@@ -6,48 +6,30 @@
 #include <stdexcept>
 #include <string>
 #include <system_error>
+#include <cstdarg>
+
+#include "builtins.hpp"
 #include "expr.hpp"
+#include "scope.hpp"
+#include "gc.hpp"
 
-struct Scope;
-struct Gc;
+EvalResult eval_failure(Expr error);
 
-structFailure: public std::runtime_error{
-  explicit EvalFailure(const std::string & what) : std::runtime_error(what) {}
-};
+EvalResult wrong_argument_type(Gc* gc, const char* type, Expr obj);
 
-struct WrongArgumentType : public EvalFailure {
-    WrongArgumentType(Gc* gc, const std::string& type, const Expr& obj)
-        : EvalFailure("Wrong argument type: " + type + ", obj: " + obj.to_string(gc)) {}
-};
+EvalResult wrong_integer_of_arguments(Gc* gc, long int count);
 
-struct WrongIntegerOfArguments : public EvalFailure {
-    WrongIntegerOfArguments(Gc* gc, long int count)
-        : EvalFailure("Wrong number of arguments: " + std::to_string(count)) {}
-};
+EvalResult not_implemented(Gc* gc);
 
-struct NotImplemented : public EvalFailure {
-    NotImplemented(Gc* gc) : EvalFailure("Not implemented") {}
-};
+EvalResult read_error(Gc* gc, const char* error_message, long int character);
 
-struct ReadError : public EvalFailure {
-    ReadError(Gc* gc, const std::string& error_message, long int character)
-        : EvalFailure("Read error: " + error_message + ", character: " + std::to_string(character)) {}
-};
+EvalResult car(Gc* gc, Scope* scope, Expr args);
 
-struct Car {
-    EvalResult operator()(void* param, Gc* gc, Scope* scope, const Expr& args);
-};
+EvalResult eval(Gc* gc, Scope* scope, Expr expr);
 
-struct Eval {
-    EvalResult operator()(Gc* gc, Scope* scope, const Expr& expr);
-};
+EvalResult eval_block(Gc* gc, Scope* scope, Expr block);
 
-struct EvalBlock {
-    EvalResult operator()(Gc* gc, Scope* scope, const Expr& block);
-};
-
-struct MatchList {
-    EvalResult operator()(Gc* gc, const std::string& format, const Expr& args, ...);
-};
+EvalResult match_list(Gc* gc, const char* format, Expr xs, ...);
 
 #endif  // INTERPRETER_H_
+

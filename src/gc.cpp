@@ -17,14 +17,26 @@
 
 #define GC_INITIAL_CAPACITY 256
 
-struct Gc
-{
+struct Gc {
     std::vector<std::unique_ptr<Expr>> exprs;
     std::vector<bool> visited;
     size_t size;
     size_t capacity;
 };
 
+
+/* 
+Using static in this context means that the function has internal linkage.
+Internal linkage means that the function is only visible within the 
+translation unit(source file) it is defined in, and not in other source 
+files that include the header file.
+
+This is useful to avoid potential name clashes with other 
+functions of the same name in other source files.
+*/
+
+
+// Returns the integer representation of an expression.
 static intptr_t value_of_expr(const Expr& expr)
 {
     if (expr->type == EXPR_CONS) {
@@ -36,6 +48,7 @@ static intptr_t value_of_expr(const Expr& expr)
     }
 }
 
+// Compares two expressions based on their integer representations. 
 static int compare_exprs(const void *a, const void *b)
 {
     assert(a);
@@ -53,7 +66,7 @@ static int compare_exprs(const void *a, const void *b)
         return 0;
     }
 }
-
+// Creates Garbage Collector.
 Gc *create_gc()
 {
     Gc *gc = new Gc();
@@ -74,6 +87,7 @@ error:
     return nullptr;
 }
 
+// Destroys Garbage Collector.
 void destroy_gc(Gc *gc)
 {
     assert(gc);
@@ -87,6 +101,7 @@ void destroy_gc(Gc *gc)
     }
 }
 
+// Adds an expression to GC's list of expr to track.
 int gc_add_expr(Gc *gc, Expr expr)
 {
     assert(gc);
@@ -110,6 +125,7 @@ int gc_add_expr(Gc *gc, Expr expr)
     return 0;
 }
 
+// Searches for given expr in GC list of track.
 static long int gc_find_expr(Gc *gc, const Expr& expr)
 {
     assert(gc);
@@ -125,6 +141,7 @@ static long int gc_find_expr(Gc *gc, const Expr& expr)
     return (long int) (result - gc->exprs.data());
 }
 
+// Performs a depth-first traversal of an expression tree.
 static void gc_traverse_expr(Gc *gc, const Expr& root)
 {
     assert(gc);
@@ -154,6 +171,7 @@ static void gc_traverse_expr(Gc *gc, const Expr& root)
     }
 }
 
+// Performs garbage collection on the GC's list of expressions.
 void gc_collect(Gc *gc, const Expr& root)
 {
     assert(gc);
@@ -186,6 +204,7 @@ void gc_collect(Gc *gc, const Expr& root)
     }
 }
 
+// Prints a visual representation of the GC's list of expressions. 
 void gc_inspect(const Gc *gc)
 {
     for (size_t i = 0; i < gc->size; ++i) {

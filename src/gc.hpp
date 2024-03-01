@@ -5,21 +5,15 @@
 
 #include "expr.hpp"
 
-class Gc
-{
-public:
-    Gc() = default;
-    ~Gc();
+struct Gc;
 
-    static Gc* create_gc();
-    static void destroy_gc(Gc* gc);
 
-    int add_expr(Expr expr);
-    void collect(Expr root);
-    void inspect() const;
+Gc* create_gc();
+void destroy_gc(Gc* gc);
 
-private:
-    // Implementation details
-};
+int gc_add_expr(Gc* gc, Expr expr);
+
+void gc_collect(Gc* gc, const Expr& root);
+void gc_inspect(const Gc* gc);
 
 #endif  // GC_H_

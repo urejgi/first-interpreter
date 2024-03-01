@@ -4,19 +4,15 @@
 #include <string.h>
 #include <vector>
 
-#include "gc.hpp"
-#include "interpreter.hpp"
-#include "builtins.hpp"
-#include "scope.hpp"
-#include "parser.hpp"
-
 #include "std.hpp"
 
+// Represents the result of an evaluation, which can be an error or a value.
 struct EvalResult {
     bool is_error;
     Expr expr;
 };
 
+// Converts a number to a real number.
 struct RealFn {
     Gc* gc;
     Expr operator()(Expr a) {
@@ -32,6 +28,7 @@ struct RealFn {
     }
 };
 
+// Creates a lambda function.
 struct LambdaFn {
     Gc* gc;
     Expr args;
@@ -43,6 +40,15 @@ struct LambdaFn {
     }
 };
 
+/*
+* A quasiquote expression is used to include unevaluated 
+  expressions within a list structure, which will be evaluated 
+  when the list is evaluated.
+  
+  Example: (1 ,(+ 2 3) 4)
+*/
+
+// Evaluates a quasiquote expression. 
 struct QuasiquoteFn {
     Gc* gc;
     Scope* scope;
@@ -78,6 +84,8 @@ struct QuasiquoteFn {
     }
 };
 
+// Represents a function that cannot be called with unquote outside of quasiquote.
+// For what???
 struct UnquoteFn {
     Gc* gc;
     Scope* scope;
@@ -91,6 +99,7 @@ struct UnquoteFn {
     }
 };
 
+// Compares if two numbers are greater than each other.
 struct GreaterThan2Fn {
     Gc* gc;
 
@@ -111,6 +120,7 @@ struct GreaterThan2Fn {
     }
 };
 
+// Checks if a list of numbers is sorted in ascending order.
 struct GreaterThanFn {
     Gc* gc;
     Scope* scope;
@@ -145,6 +155,7 @@ struct GreaterThanFn {
     }
 };
 
+// Applies a function to each element in a list.
 struct ListOpFn {
     Gc* gc;
     Scope* scope;
@@ -157,6 +168,7 @@ struct ListOpFn {
     }
 };
 
+// Adds two numbers.
 struct Plus2Fn {
     Gc* gc;
 
@@ -177,6 +189,7 @@ struct Plus2Fn {
     }
 };
 
+// Adds all the numbers in a list.
 struct PlusOpFn {
     Gc* gc;
     Scope* scope;
@@ -208,6 +221,7 @@ struct PlusOpFn {
     }
 };
 
+// Multiplies two numbers.
 struct Mul2Fn {
     Gc* gc;
 
@@ -228,6 +242,7 @@ struct Mul2Fn {
     }
 };
 
+// Multiplies all the numbers in a list.
 struct MulOpFn {
     Gc* gc;
     Scope* scope;
@@ -259,6 +274,7 @@ struct MulOpFn {
     }
 };
 
+// Returns the first key in an association list that matches the given key.
 struct AssocOpFn {
     Gc* gc;
     Scope* scope;
@@ -278,6 +294,7 @@ struct AssocOpFn {
     }
 };
 
+// Sets the value of a variable in a scope.
 struct SetFn {
     Gc* gc;
     Scope* scope;
@@ -304,6 +321,7 @@ struct SetFn {
     }
 };
 
+// Returns the given expression without evaluating it.
 struct QuoteFn {
     Gc* gc;
     Scope* scope;
@@ -322,6 +340,7 @@ struct QuoteFn {
     }
 };
 
+// Evaluates a sequence of expressions.
 struct BeginFn {
     Gc* gc;
     Scope* scope;
@@ -340,6 +359,7 @@ struct BeginFn {
     }
 };
 
+// Defines a new function.
 struct DefunFn {
     Gc* gc;
     Scope* scope;
@@ -367,6 +387,7 @@ struct DefunFn {
     }
 };
 
+// Evaluates a when expression.
 struct WhenFn {
     Gc* gc;
     Scope* scope;
@@ -397,6 +418,7 @@ struct WhenFn {
     }
 };
 
+// Applies a lambda function to a list of arguments.
 struct LambdaOpFn {
     Gc* gc;
     Scope* scope;
@@ -421,6 +443,7 @@ struct LambdaOpFn {
     }
 };
 
+// Checks if two expressions are equal.
 struct EqualOpFn {
     Gc* gc;
     Scope* scope;
@@ -429,7 +452,7 @@ struct EqualOpFn {
         (void)gc;
         assert(scope);
 
-        Expr obj1;
+        Expr obj1;  
         Expr obj2;
         EvalResult result = match_list(gc, "ee", args, &obj1, &obj2);
         if (result.is_error) {
@@ -445,6 +468,7 @@ struct EqualOpFn {
     }
 };
 
+//  Loads a file and evaluates its contents.
 struct LoadFn {
     Gc* gc;
     Scope* scope;
@@ -469,7 +493,7 @@ struct LoadFn {
     }
 };
 
-
+// Appends a list of lists.
 struct AppendFn {
     Gc* gc;
     Scope* scope;
@@ -507,14 +531,14 @@ private:
     }
 };
 
-
+// Loads the standard library.
 void load_std_library(Gc* gc, Scope* scope) {
     set_scope_value(gc, scope, SYMBOL(gc, "car"), NATIVE(gc, car, NULL));
     set_scope_value(gc, scope, SYMBOL(gc, ">"), NATIVE(gc, greaterThan, NULL));
     set_scope_value(gc, scope, SYMBOL(gc, "+"), NATIVE(gc, plus_op, NULL));
     set_scope_value(gc, scope, SYMBOL(gc, "*"), NATIVE(gc, mul_op, NULL));
     set_scope_value(gc, scope, SYMBOL(gc, "list"), NATIVE(gc, list_op, NULL));
-    set_scope_value(gc, scope, SYMBOL(gc, "t"), SYMBOL(gc, "t"));
+    set_scope_value(gc, scope, SYMBOL(gc, "t"), SYMBOL(gc, "t"));       // ???
     set_scope_value(gc, scope, SYMBOL(gc, "nil"), SYMBOL(gc, "nil"));
     set_scope_value(gc, scope, SYMBOL(gc, "assoc"), NATIVE(gc, assoc_op, NULL));
     set_scope_value(gc, scope, SYMBOL(gc, "quasiquote"), NATIVE(gc, quasiquote, NULL));
@@ -524,9 +548,12 @@ void load_std_library(Gc* gc, Scope* scope) {
     set_scope_value(gc, scope, SYMBOL(gc, "defun"), NATIVE(gc, defun, NULL));
     set_scope_value(gc, scope, SYMBOL(gc, "when"), NATIVE(gc, when, NULL));
     set_scope_value(gc, scope, SYMBOL(gc, "lambda"), NATIVE(gc, lambda_op, NULL));
-    set_scope_value(gc, scope, SYMBOL(gc, "λ"), NATIVE(gc, lambda_op, NULL));
+    set_scope_value(gc, scope, SYMBOL(gc, "λ"), NATIVE(gc, lambda_op, NULL));       // ???
     set_scope_value(gc, scope, SYMBOL(gc, "unquote"), NATIVE(gc, unquote, NULL));
     set_scope_value(gc, scope, SYMBOL(gc, "load"), NATIVE(gc, load, NULL));
     set_scope_value(gc, scope, SYMBOL(gc, "append"), NATIVE(gc, append, NULL));
     set_scope_value(gc, scope, SYMBOL(gc, "equal"), NATIVE(gc, equal_op, NULL));
 }
+
+
+

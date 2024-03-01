@@ -1,0 +1,5 @@
+General ideas that can improve code in mostly all files here.
+
+1) Using "const Expr& expr" instead of "Expr* expr" in function arguments.
+
+2) Usage of smart pointers (like std::unique_ptr<T> and others) instead of raw pointers.

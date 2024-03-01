@@ -7,12 +7,10 @@
 #include <cstdarg>
 #include <cstdbool>
 
-#include "builtins.hpp"
-#include "expr.hpp"
 #include "interpreter.hpp"
-#include "scope.hpp"
-#include "gc.cpp"
 
+
+// a.k.a. success.
 EvalResult eval_success(Expr expr)
 {
     EvalResult result = {
@@ -23,6 +21,7 @@ EvalResult eval_success(Expr expr)
     return result;
 }
 
+// a.k.a. failure.
 EvalResult eval_failure(Expr error)
 {
     EvalResult result = {
@@ -33,12 +32,14 @@ EvalResult eval_failure(Expr error)
     return result;
 }
 
-EvalResult wrong_argument_type(Gc *gc, const char *type, Expr obj)
+// failure due to wrong argument type.
+EvalResult wrong_argument_type(Gc *gc, const std::string&type, Expr obj)
 {
     return eval_failure(
         list(gc, "qqe", "wrong-argument-type", type, obj));
 }
 
+// failure due to wrong number of arguments. 
 EvalResult wrong_integer_of_arguments(Gc *gc, long int count)
 {
     return eval_failure(
@@ -47,17 +48,20 @@ EvalResult wrong_integer_of_arguments(Gc *gc, long int count)
              INTEGER(gc, count)));
 }
 
+// failure due to a function not being implemented.
 EvalResult not_implemented(Gc *gc)
 {
     return eval_failure(SYMBOL(gc, "not-implemented"));
 }
 
-EvalResult read_error(Gc *gc, const char *error_message, long int character)
+// failure due to a read error.
+EvalResult read_error(Gc *gc, const std::string&error_message, long int character)
 {
     return eval_failure(
         list(gc, "qsd", "read-error", error_message, character));
 }
 
+// Evaluates an atom in a given scope.
 EvalResult eval_atom(Gc *gc, Scope *scope, Atom *atom)
 {
     (void) scope;
@@ -90,6 +94,7 @@ EvalResult eval_atom(Gc *gc, Scope *scope, Atom *atom)
                              atom_as_expr(atom)));
 }
 
+// Evaluates all arguments in a given scope.
 EvalResult eval_all_args(Gc *gc, Scope *scope, Expr args)
 {
     (void) scope;
@@ -121,6 +126,8 @@ EvalResult eval_all_args(Gc *gc, Scope *scope, Expr args)
                              args));
 }
 
+
+// Calls a lambda function in a given scope with a given list of arguments.
 EvalResult call_lambda(Gc *gc,
                        Expr lambda,
                        Expr args) {
@@ -164,6 +171,7 @@ EvalResult call_lambda(Gc *gc,
     return result;
 }
 
+// Evaluates a function call expression in a given scope.
 EvalResult eval_funcall(Gc *gc,
                         Scope *scope,
                         Expr callable_expr,
@@ -190,6 +198,7 @@ EvalResult eval_funcall(Gc *gc,
     return call_lambda(gc, callable_result.expr, args_result.expr);
 }
 
+// Evaluates a block expression in a given scope.
 EvalResult eval_block(Gc *gc, Scope *scope, Expr block)
 {
     assert(gc);
@@ -214,6 +223,7 @@ EvalResult eval_block(Gc *gc, Scope *scope, Expr block)
     return eval_result;
 }
 
+// Evaluates an expression in a given scope.
 EvalResult eval(Gc *gc, Scope *scope, Expr expr)
 {
     switch(expr.type) {
@@ -231,6 +241,7 @@ EvalResult eval(Gc *gc, Scope *scope, Expr expr)
                              expr));
 }
 
+// Evaluates the car of a list expression in a given scope.
 EvalResult car(Gc *gc, Scope *scope, Expr args)
 {
     assert(gc);
@@ -254,6 +265,7 @@ EvalResult car(Gc *gc, Scope *scope, Expr args)
     return eval_success(CAR(xs));
 }
 
+// Matches a list expression against a given format.
 EvalResult match_list(Gc* gc, const char* format, Expr xs, ...) {
     va_list args_list;
     va_start(args_list, xs);

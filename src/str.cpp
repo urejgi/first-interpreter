@@ -9,7 +9,8 @@
 
 #include "str.hpp"
 
-char *string_duplicate(const char *str, const char *str_end)
+// Duplicates a substring of str, up to str_end if provided.
+std::string string_duplicate(const std::string&str, const std::string&str_end)
 {
     assert(str);
 
@@ -18,7 +19,7 @@ char *string_duplicate(const char *str, const char *str_end)
     }
 
     const size_t n = str_end == nullptr ? strlen(str) : (size_t) (str_end - str);
-    char *dup_str = static_cast<char *>(calloc(1, sizeof(char) * (n + 1)));
+    std::string dup_str = static_cast<std::string >(calloc(1, sizeof(char) * (n + 1)));
     if (dup_str == nullptr) {
         return nullptr;
     }
@@ -29,7 +30,8 @@ char *string_duplicate(const char *str, const char *str_end)
     return dup_str;
 }
 
-char *trim_endline(char *s)
+// Trims the endline character from a string.
+std::string trim_endline(std::string s)
 {
     const size_t n = std::strlen(s);
 
@@ -44,7 +46,8 @@ char *trim_endline(char *s)
     return s;
 }
 
-char *string_append(char *prefix, const char *suffix)
+// Appends given suffix to prefix and returns the resulting string.
+std::string string_append(std::string prefix, const std::string&suffix)
 {
     assert(suffix);
 
@@ -52,7 +55,7 @@ char *string_append(char *prefix, const char *suffix)
         return string_duplicate(suffix, nullptr);
     }
 
-    prefix = static_cast<char *>(realloc(prefix, std::strlen(prefix) + std::strlen(suffix) + 1));
+    prefix = static_cast<std::string>(realloc(prefix, std::strlen(prefix) + std::strlen(suffix) + 1));
     std::strcat(prefix, suffix);
     return prefix;
 }

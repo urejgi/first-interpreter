@@ -149,7 +149,7 @@ static ParseResult parse_string(Gc* gc, Token current_token)
 
 static ParseResult parse_integer(Gc *gc, Token current_token)
 {
-    char *endptr = nullptr;
+    std::string endptr = nullptr;
     const long int x = std::strtol(current_token.begin, &endptr, 10);
 
     if ((current_token.begin == endptr) || (current_token.end != endptr)) {
@@ -165,7 +165,7 @@ static ParseResult parse_real(Gc *gc, Token current_token)
 {
     assert(gc);
 
-    char *endptr = nullptr;
+    std::string endptr = nullptr;
     const float x = std::strtof(current_token.begin, &endptr);
 
     if ((current_token.begin == endptr) || (current_token.end != endptr)) {
@@ -245,14 +245,14 @@ static ParseResult parse_expr(Gc *gc, Token current_token)
 }
 
 
-ParseResult read_expr_from_string(Gc *gc, const std::string &str)
+ParseResult read_expr_from_string(Gc *gc, const std::string&&str)
 {
     assert(gc);
     assert(!str.empty());
     return parse_expr(gc, next_token(str));
 }
 
-ParseResult read_all_exprs_from_string(Gc *gc, const std::string &str)
+ParseResult read_all_exprs_from_string(Gc *gc, const std::string&&str)
 {
     assert(gc);
     assert(!str.empty());
@@ -298,7 +298,7 @@ ParseResult parse_io_failure(int errno)
     return result;
 }
 
-ParseResult read_expr_from_file(Gc *gc, const std::string &filename)
+ParseResult read_expr_from_file(Gc *gc, const std::string&&filename)
 {
     assert(filename.size() > 0);
 
@@ -337,7 +337,7 @@ ParseResult read_expr_from_file(Gc *gc, const std::string &filename)
     return result;
 }
 
-ParseResult read_all_exprs_from_file(Gc *gc, const std::string &filename)
+ParseResult read_all_exprs_from_file(Gc *gc, const std::string&&filename)
 {
     std::ifstream stream(filename, std::ios::binary);
     if (!stream) {
@@ -374,7 +374,7 @@ ParseResult read_all_exprs_from_file(Gc *gc, const std::string &filename)
     return result;
 }
 
-ParseResult parse_success(Expr expr, const char *end)
+ParseResult parse_success(Expr expr, const std::string&end)
 {
     ParseResult result = {
         .is_error = false,
@@ -385,7 +385,7 @@ ParseResult parse_success(Expr expr, const char *end)
     return result;
 }
 
-ParseResult parse_failure(const std::string &error_message, const char *end)
+ParseResult parse_failure(const std::string& error_message, const std::string&end)
 {
     ParseResult result = {
         .is_error = true,

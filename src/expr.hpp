@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "gc.cpp"
+#include "gc.hpp"
 
 class Scope;
 
@@ -32,16 +32,20 @@ struct Expr
     };
 };
 
-const char* expr_type_as_string(ExprType expr_type);
+const std::string expr_type_as_string(ExprType expr_type);
+
 
 Expr atom_as_expr(Atom* atom);
 Expr cons_as_expr(Cons* cons);
-Expr void_expr();
+Expr void_expr(void);
 
 void destroy_expr(Expr expr);
-void print_expr_as_sexpr(std::ostream& stream, Expr expr);
-void print_expr_as_c(std::ostream& stream, Expr expr);
-int expr_as_sexpr(Expr expr, char* output, size_t n);
+void print_atom_as_sexpr(FILE* stream, Atom* atom);
+void print_cons_as_sexpr(FILE* stream, Cons* head);
+void print_expr_as_sexpr(FILE* stream, Expr expr);
+
+int expr_as_sexpr(Expr expr, std::string output, size_t n);
+
 
 struct EvalResult
 {
@@ -74,7 +78,7 @@ enum AtomType
     ATOM_NATIVE
 };
 
-const char* atom_type_as_string(AtomType atom_type);
+const std::string atom_type_as_string(AtomType atom_type);
 
 struct Atom
 {
@@ -90,14 +94,16 @@ struct Atom
     };
 };
 
-Atom* create_integer_atom(long int num);
-Atom* create_real_atom(float num);
-Atom* create_string_atom(const char* str, const char* str_end = nullptr);
-Atom* create_symbol_atom(const char* sym, const char* sym_end = nullptr);
-Atom* create_lambda_atom(Expr args_list, Expr body, Expr envir);
-Atom* create_native_atom(NativeFunction fun, void* param);
+
+Atom* create_real_atom(Gc* gc, float real);
+Atom* create_integer_atom(Gc* gc, long int num);
+Atom* create_string_atom(Gc* gc, const std::string& str, const std::string& str_end);
+Atom* create_symbol_atom(Gc* gc, const std::string& sym, const std::string& sym_end);
+Atom* create_lambda_atom(Gc* gc,Expr args_list, Expr body, Expr envir);
+Atom* create_native_atom(Gc* gc, NativeFunction fun, void* param);
+
 void destroy_atom(Atom* atom);
-void print_atom_as_sexpr(std::ostream& stream, Atom* atom);
+
 
 struct Cons
 {
@@ -105,8 +111,11 @@ struct Cons
     Expr cdr;
 };
 
-Cons* create_cons(Expr car, Expr cdr);
+Cons* create_cons(Gc* gc, Expr car, Expr cdr);
+
 void destroy_cons(Cons* cons);
-void print_cons_as_sexpr(std::ostream& stream, Cons* cons);
+void print_cons_as_sexpr(FILE* stream, Cons* head);
 
 #endif  // EXPR_H_
+
+

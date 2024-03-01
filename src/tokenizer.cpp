@@ -6,6 +6,7 @@
 
 #include "tokenizer.hpp"
 
+// Converts a string range into a Token object.
 Token token(const std::string& begin, const std::string& end)
 {
     Token token = {
@@ -16,6 +17,7 @@ Token token(const std::string& begin, const std::string& end)
     return token;
 }
 
+// Checks if a character is a forbidden symbol character.
 static bool is_symbol_char(char x)
 {
     static constexpr char forbidden_symbol_chars[] = {
@@ -32,11 +34,13 @@ static bool is_symbol_char(char x)
     return true;
 }
 
+// Advances the iterator to the next non-whitespace character.
 std::string::const_iterator skip_whitespace(std::string::const_iterator begin){
     return std::find_if(begin, str.end(), [](char c) { return !std::isspace(c); });
 }
 
-static const char* next_quote(const char* str)
+// Finds the next quote character in a string.
+static const std::string next_quote(const std::string& str)
 {
     assert(str);
 
@@ -47,7 +51,8 @@ static const char* next_quote(const char* str)
     return str;
 }
 
-static const char* skip_until_newline(const char* str)
+// Finds the next newline character in a string.
+static const std::string skip_until_newline(const std::string& str)
 {
     assert(str);
 
@@ -58,13 +63,14 @@ static const char* skip_until_newline(const char* str)
     return str;
 }
 
+// Finds the next non-symbol character in a string.
 std::string::const_iterator next_non_symbol(std::string::const_iterator begin)
 {
     return std::find_if_not(begin, str.end(), is_symbol_char);
 }
 
-
-Token next_token(const char* str)
+// Returns the next token in the input string.
+Token next_token(const std::string& str)
 {
     assert(str);
 
@@ -88,7 +94,7 @@ Token next_token(const char* str)
         return token(str, str + 1);
 
     case '"': {
-        const char* str_end = next_quote(str + 1);
+        const std::string str_end = next_quote(str + 1);
         return token(str, *str_end == 0 ? str_end : str_end + 1);
     }
 
@@ -96,3 +102,4 @@ Token next_token(const char* str)
         return token(str, next_non_symbol(str + 1));
     }
 }
+

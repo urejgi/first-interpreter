@@ -5,6 +5,8 @@
 #include <assert.h>
 #include "scope.hpp"
 
+
+// Retrieve the value associated with a name in a given scope.
 Expr get_scope_value_impl(Expr scope, Expr name)
 {
     if (cons_p(scope)) {
@@ -14,12 +16,12 @@ Expr get_scope_value_impl(Expr scope, Expr name)
 
     return scope;
 }
-
 Expr get_scope_value(const Scope *scope, Expr name)
 {
     return get_scope_value_impl(scope->expr, name);
 }
 
+// Set the value associated with a name in a given scope, creating a new binding if necessary.
 Expr set_scope_value_impl(Gc *gc, Expr &scope, Expr name, Expr value)
 {
     if (cons_p(scope)) {
@@ -52,6 +54,7 @@ Expr set_scope_value_impl(Gc *gc, Expr &scope, Expr name, Expr value)
     }
 }
 
+// Create a new, empty scope.
 Scope create_scope(Gc *gc)
 {
     Scope scope = {
@@ -60,11 +63,13 @@ Scope create_scope(Gc *gc)
     return scope;
 }
 
+// Set the value associated with a name in a given scope, creating a new binding if necessary.
 void set_scope_value(Gc *gc, Scope *scope, Expr name, Expr value)
 {
     scope->expr = set_scope_value_impl(gc, scope->expr, name, value);
 }
 
+// Push a new scope frame onto the given scope, associating the variables with the arguments.
 void push_scope_frame(Gc *gc, Scope *scope, Expr vars, Expr args)
 {
     assert(gc);
@@ -83,6 +88,7 @@ void push_scope_frame(Gc *gc, Scope *scope, Expr vars, Expr args)
     scope->expr = CONS(gc, frame, scope->expr);
 }
 
+// Pop the top scope frame from the given scope.
 void pop_scope_frame(Gc *gc, Scope *scope)
 {
     assert(gc);
