@@ -10,7 +10,7 @@
 #include "str.hpp"
 
 // Duplicates a substring of str, up to str_end if provided.
-std::string string_duplicate(const std::string&str, const std::string&str_end)
+std::string string_duplicate(const std::string& str, const std::string& str_end)
 {
     assert(str);
 
@@ -47,7 +47,7 @@ std::string trim_endline(std::string s)
 }
 
 // Appends given suffix to prefix and returns the resulting string.
-std::string string_append(std::string prefix, const std::string&suffix)
+std::string string_append(const std::string& prefix, const std::string& suffix)
 {
     assert(suffix);
 

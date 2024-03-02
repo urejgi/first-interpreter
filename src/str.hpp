@@ -6,8 +6,8 @@
 
 #include <string>
 
-std::string string_duplicate(const std::string str, const std::string str_end);
-std::string string_append(std::string prefix, const std::string suffix);
+std::string string_duplicate(const std::string& str, const std::string& str_end);
+std::string string_append(const std::string& prefix, const std::string& suffix);
 std::string trim_endline(std::string s);
 
 #endif  // STR_H_
