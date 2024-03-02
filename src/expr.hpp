@@ -35,12 +35,12 @@ struct Expr
 const std::string expr_type_as_string(ExprType expr_type);
 
 
-Expr atom_as_expr(Atom* atom);
-Expr cons_as_expr(Cons* cons);
+Expr atom_as_expr(const Atom& atom);
+Expr cons_as_expr(const Cons& cons);
 Expr void_expr(void);
 
 void destroy_expr(Expr expr);
-void print_atom_as_sexpr(FILE* stream, Atom* atom);
+void print_atom_as_sexpr(FILE* stream, const Atom& atom);
 void print_cons_as_sexpr(FILE* stream, Cons* head);
 void print_expr_as_sexpr(FILE* stream, Expr expr);
 
