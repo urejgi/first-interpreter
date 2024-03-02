@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <cstring>
@@ -151,15 +152,7 @@ constexpr std::string specials[] = {
 // Check if a string is a special form.
 bool is_special(const std::string& name) {
     assert(!name.empty());
-
-    size_t n = sizeof(specials) / sizeof(const std::string);
-    for (size_t i = 0; i < n; ++i) {
-        if (name == specials[i]) {
-            return true;
-        }
-    }
-
-    return false;
+    return binary_search(specials.begin(), specials.end(), name);
 }
 
 // Create a list from a format string and arguments.
