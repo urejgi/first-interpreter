@@ -1,4 +1,5 @@
 // interpreter.cpp
+
 #pragma once
 
 #include <cassert>
@@ -9,8 +10,48 @@
 
 #include "interpreter.hpp"
 
+/*
+* Problem: Evaluation of expressions.
 
-// a.k.a. success.
+    Evaluation, in the context of programming or scripting languages,
+    refers to the process of interpreting expressions represented in
+    the language to produce a result or to perform specified actions.
+    This process may include arithmetic operations, function invocations,
+    and control flow structures among others.
+
+* Solution:
+    The code snippet below is part of an interpreter implementation that
+    handles the evaluation of expressions. It comprises:
+
+    1) Two helper functions:
+       - eval_success: Constructs a successful evaluation result.
+       - eval_failure: Constructs a failed evaluation result, typically with an error message or code.
+
+    2) Error handling:
+       - These utility functions are designed to simplify the process of signaling success or errors
+         when evaluating expressions. Errors may include type mismatches, incorrect argument counts,
+         unimplemented functions, or syntax reading issues.
+
+    3) Evaluation of Atoms and Arguments:
+       - Although not explicitly shown in this snippet, evaluation would typically involve handling atomic
+         values (like numbers, strings) and arguments passed to functions or operations.
+
+    4) Function invocations and Lambda calls:
+       - The evaluation mechanism also supports invoking predefined or user-defined functions
+         and executing lambda expressions, which are functions defined without a specific name.
+
+    5) Block evaluation:
+       - The interpreter may also need to evaluate blocks of expressions, especially for control
+         flow structures like if-else conditions, loops, etc.
+
+    6) List Handling:
+       - Given that many interpretive languages have list structures, handling the evaluation of lists
+         and operations on them (like map, reduce) would also be a part of the evaluation process.
+
+    The following helper functions specifically handle various types of errors that may occur during the evaluation:
+*/
+
+// Constructs a result indicating successful evaluation.
 EvalResult eval_success(Expr expr)
 {
     EvalResult result = {
@@ -21,7 +62,7 @@ EvalResult eval_success(Expr expr)
     return result;
 }
 
-// a.k.a. failure.
+// Constructs a result indicating failed evaluation with an error.
 EvalResult eval_failure(Expr error)
 {
     EvalResult result = {
@@ -32,36 +73,43 @@ EvalResult eval_failure(Expr error)
     return result;
 }
 
-// failure due to wrong argument type.
-EvalResult wrong_argument_type(Gc *gc, const std::string&type, Expr obj)
+// Returns an evaluation failure due to receiving an argument of the wrong type.
+EvalResult wrong_argument_type(Gc* gc, const std::string& type, Expr obj)
 {
     return eval_failure(
         list(gc, "qqe", "wrong-argument-type", type, obj));
 }
 
-// failure due to wrong number of arguments. 
-EvalResult wrong_integer_of_arguments(Gc *gc, long int count)
+// Returns an evaluation failure due to receiving an incorrect number of arguments. 
+EvalResult wrong_integer_of_arguments(Gc* gc, long int count)
 {
     return eval_failure(
         CONS(gc,
-             SYMBOL(gc, "wrong-integer-of-arguments"),
-             INTEGER(gc, count)));
+            SYMBOL(gc, "wrong-integer-of-arguments"),
+            INTEGER(gc, count)));
 }
 
-// failure due to a function not being implemented.
-EvalResult not_implemented(Gc *gc)
+// Returns an evaluation failure indicating that a requested functionality is not implemented.
+EvalResult not_implemented(Gc* gc)
 {
     return eval_failure(SYMBOL(gc, "not-implemented"));
 }
 
-// failure due to a read error.
-EvalResult read_error(Gc *gc, const std::string&error_message, long int character)
+// Returns an evaluation failure due to encountering a read error, with an error message and character index.
+EvalResult read_error(Gc* gc, const std::string& error_message, long int character)
 {
     return eval_failure(
         list(gc, "qsd", "read-error", error_message, character));
 }
+/*
+* Evaluates atomic expressions 
+    (e.g., integers, real numbers, strings, lambda expressions, native functions, and symbols).
+    
+    If the atom is a symbol, it looks up its value in the given scope.
 
-// Evaluates an atom in a given scope.
+    If the symbol is not defined in the scope, 
+    it returns an error indicating an undefined (void) variable.
+*/
 EvalResult eval_atom(Gc *gc, Scope *scope, Atom *atom)
 {
     (void) scope;
@@ -94,7 +142,11 @@ EvalResult eval_atom(Gc *gc, Scope *scope, Atom *atom)
                              atom_as_expr(atom)));
 }
 
-// Evaluates all arguments in a given scope.
+/*
+* Recursively evaluates a list of arguments (expressions). 
+    It calls itself to evaluate each argument in the list 
+    until all arguments have been successfully evaluated or an error occurs.
+*/
 EvalResult eval_all_args(Gc *gc, Scope *scope, Expr args)
 {
     (void) scope;
@@ -127,7 +179,15 @@ EvalResult eval_all_args(Gc *gc, Scope *scope, Expr args)
 }
 
 
-// Calls a lambda function in a given scope with a given list of arguments.
+/*
+* Carries out the invocation of a lambda function. 
+    
+    It ensures that the lambda receives the correct number of arguments 
+    and sets up a new scope for the lambda execution, 
+    inheriting the environment from the lambda definition. 
+    
+    It then sequentially evaluates each expression in the lambda body within this scope.
+*/
 EvalResult call_lambda(Gc *gc,
                        Expr lambda,
                        Expr args) {
@@ -171,7 +231,18 @@ EvalResult call_lambda(Gc *gc,
     return result;
 }
 
-// Evaluates a function call expression in a given scope.
+/*
+* Evaluates a function call. 
+
+    First, it evaluates the callable expression to get the function to be called. 
+    Then, it conditionally evaluates the arguments 
+    (unless it's a special form, in which case arguments are passed unevaluated).
+    
+    Depending on whether the callable is a native function 
+    (implemented in the host language, in this case, C++) or a lambda (user-defined function), 
+    
+    it delegates the call to the appropriate handler.
+*/
 EvalResult eval_funcall(Gc *gc,
                         Scope *scope,
                         Expr callable_expr,
@@ -198,7 +269,15 @@ EvalResult eval_funcall(Gc *gc,
     return call_lambda(gc, callable_result.expr, args_result.expr);
 }
 
-// Evaluates a block expression in a given scope.
+/*
+* This function processes blocks of expressions, 
+    typically found in constructs such as (begin ...) or (progn ...). 
+    
+    It sequentially evaluates each expression in the list and returns the result of the last expression. 
+    
+    This behavior is typical in Lisp-like languages where blocks of code are executed sequentially, 
+    and the value of the block is the value of the last expression evaluated.
+*/
 EvalResult eval_block(Gc *gc, Scope *scope, Expr block)
 {
     assert(gc);
@@ -241,7 +320,12 @@ EvalResult eval(Gc *gc, Scope *scope, Expr expr)
                              expr));
 }
 
-// Evaluates the car of a list expression in a given scope.
+/*
+* These functions provide basic list manipulation capabilities, essential in a Lisp interpreter.
+    car retrieves the first element of a list, corresponding to Lisp's car functionality. 
+    
+    These operations are fundamental in traversing and manipulating s-expressions.
+*/
 EvalResult car(Gc *gc, Scope *scope, Expr args)
 {
     assert(gc);

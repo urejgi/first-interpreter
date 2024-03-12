@@ -9,7 +9,13 @@
 
 #include "str.hpp"
 
-// Duplicates a substring of str, up to str_end if provided.
+/*
+* The main purpose of this file is string manipulation.
+*/
+
+
+// Creates a duplicate of a given substring starting from `str` up to `str_end`. 
+// If `str_end` is not provided, duplicates the entire string
 std::string string_duplicate(const std::string& str, const std::string& str_end)
 {
     assert(str);
@@ -30,7 +36,7 @@ std::string string_duplicate(const std::string& str, const std::string& str_end)
     return dup_str;
 }
 
-// Trims the endline character from a string.
+// Removes the newline character from the end of a string, if it exists.
 std::string trim_endline(std::string s)
 {
     const size_t n = std::strlen(s);
@@ -46,7 +52,7 @@ std::string trim_endline(std::string s)
     return s;
 }
 
-// Appends given suffix to prefix and returns the resulting string.
+// Concatenates two strings, `prefix` and `suffix`, into a single new string and returns it. 
 std::string string_append(const std::string& prefix, const std::string& suffix)
 {
     assert(suffix);
@@ -59,5 +65,3 @@ std::string string_append(const std::string& prefix, const std::string& suffix)
     std::strcat(prefix, suffix);
     return prefix;
 }
-
-

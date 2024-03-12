@@ -17,12 +17,6 @@
 
 #define GC_INITIAL_CAPACITY 256
 
-struct Gc {
-    std::vector<std::unique_ptr<Expr>> exprs;
-    std::vector<bool> visited;
-    size_t size;
-    size_t capacity;
-};
 
 
 /* 
@@ -33,6 +27,18 @@ files that include the header file.
 
 This is useful to avoid potential name clashes with other 
 functions of the same name in other source files.
+*/
+
+
+/*
+* ### Auxiliary Functions:
+    - value_of_expr and compare_exprs: 
+        Utility functions supporting gc_find_expr. 
+        They facilitate comparison between expressions 
+        by mapping them to their address representations. 
+        
+        This is a technique used to enable searching and sorting operations 
+        on complex structures through simple integer comparisons.
 */
 
 
@@ -66,7 +72,13 @@ static int compare_exprs(const void *a, const void *b)
         return 0;
     }
 }
-// Creates Garbage Collector.
+
+/*
+* Allocates memory for a new Gc instance and initializes its members, 
+    particularly setting up initial capacities for the expression vector and visited marker vector. 
+
+    If allocation fails, it safely cleans up before returning nullptr.
+*/
 Gc *create_gc()
 {
     Gc *gc = new Gc();
@@ -87,7 +99,12 @@ error:
     return nullptr;
 }
 
-// Destroys Garbage Collector.
+/*
+*  Iterates over the tracked expressions to explicitly call on each 
+    before deallocating the Gc instance itself. 
+    
+    This step is crucial for properly freeing any custom-managed memory inside each Expr.
+*/
 void destroy_gc(Gc *gc)
 {
     assert(gc);
@@ -101,7 +118,11 @@ void destroy_gc(Gc *gc)
     }
 }
 
-// Adds an expression to GC's list of expr to track.
+/*
+* Adds a new Expr to the garbage collector's tracking list.
+    It ensures that there's adequate capacity in the GC's structures, resizing if necessary, 
+    and then takes ownership of the expression using std::move to avoid unnecessary copying.
+*/
 int gc_add_expr(Gc *gc, Expr expr)
 {
     assert(gc);
@@ -125,7 +146,14 @@ int gc_add_expr(Gc *gc, Expr expr)
     return 0;
 }
 
-// Searches for given expr in GC list of track.
+/*
+*  Locates a given expression within the GC's tracking list using binary search (bsearch).
+    The search is based on the integer representation of the expression addresses,
+    which allows quickly determining if an expression is managed by the GC. 
+    
+    This could be part of an optimization to prevent adding duplicates 
+    or for finding expressions during the mark phase of a garbage collection cycle.
+*/
 static long int gc_find_expr(Gc *gc, const Expr& expr)
 {
     assert(gc);
@@ -140,6 +168,72 @@ static long int gc_find_expr(Gc *gc, const Expr& expr)
 
     return (long int) (result - gc->exprs.data());
 }
+
+
+
+// Methodology.
+// 
+// Problem: memory management in an environment where expressions are dynamically created 
+// and may become unreachable
+//  (i.e., no references point to them anymore), which would otherwise result in memory leaks. 
+// 
+// Solution: implementation of simplified Mark-and-Sweep algorithm.
+// 
+// Description of the solution:
+// 
+// ### Mark-and-Sweep Garbage Collection.
+/*
+* Garbage collection here is performed in two major phases: marking and sweeping.
+
+1. Mark Phase (gc_traverse_expr): 
+    
+    This function recursively traverses the expression graph
+        starting from a given root Expr. It marks each expression encountered 
+            as visited (gc->visited[root_index] = true;) to indicate it's still in use.
+        
+        This traversal accounts for different types of expressions, 
+            including cons cells and lambda atoms, 
+                ensuring all reachable expressions are marked. 
+        
+        This process identifies all expressions that are still "alive" 
+            or reachable from the root,
+                    leveraging the ability to navigate through 
+                        the expression structure to find all connected expressions.
+
+2. Sweep Phase (gc_collect): 
+    
+    - First, the expression list (gc->exprs) is sorted and defragmented 
+        to ensure that all void expressions (unused slots) are removed,
+            effectively compacting the list of tracked expressions.
+    
+    - It then initializes the visited marker for each expression to false, 
+        preparing for the mark phase.
+    
+    - The mark phase is initiated by calling gc_traverse_expr(gc, root), 
+        which marks all reachable (alive) expressions from the provided root.
+    
+    - After marking, the code iterates through all expressions, 
+        deallocating those not marked as visited 
+        (i.e., those that are unreachable and thus can safely be cleaned up) 
+            by replacing them with an EXPR_VOID type expression to indicate the slot is now unused.
+
+
+3. Conclusion:
+    The mark-and-sweep approach implemented here efficiently identifies and deallocates unreachable expressions
+    in a system possibly involving complex relationships between dynamic expressions. 
+    
+    By marking expressions reachable from a known root before sweeping, 
+    the garbage collector minimizes the risk of prematurely freeing memory still in use 
+    (dangling pointer problem) or memory leaks (unreachable memory not being freed).
+    
+    This garbage collection solution is suitable for managing memory in environments
+    like interpreters or symbolic computation systems where the memory footprint of expressions 
+    can grow and shrink dynamically, 
+    requiring a flexible and robust method to ensure memory efficiency and program stability.
+
+*/
+
+
 
 // Performs a depth-first traversal of an expression tree.
 static void gc_traverse_expr(Gc *gc, const Expr& root)

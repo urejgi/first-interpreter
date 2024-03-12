@@ -30,7 +30,12 @@ a complete program or compile and run it.
 
 constexpr size_t REPL_BUFFER_MAX = 1024;
 
-// Evaluate a line of input.
+/*
+* The eval_line function is responsible for evaluating a line of input.
+    It reads an expression from the input string, evaluates it, and prints the result. 
+    
+    If an error occurs, it prints an error message and returns. 
+*/
 static void eval_line(Gc &gc, Scope &scope, const std::string&&line)
 {
     while (!line.empty()) {

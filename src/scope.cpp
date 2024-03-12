@@ -5,8 +5,12 @@
 #include <assert.h>
 #include "scope.hpp"
 
+/*
+* The main purpose of this file is scope setting.
+*/
 
-// Retrieve the value associated with a name in a given scope.
+// Retrieves the value associated with a provided name within a nested scope structure,
+//  traversing through nested scope frames if necessary.
 Expr get_scope_value_impl(Expr scope, Expr name)
 {
     if (cons_p(scope)) {
@@ -16,12 +20,16 @@ Expr get_scope_value_impl(Expr scope, Expr name)
 
     return scope;
 }
+
+// Public function to retrieve a value by name from a scope,
+//   serving as an interface to the internal implementation.
 Expr get_scope_value(const Scope *scope, Expr name)
 {
     return get_scope_value_impl(scope->expr, name);
 }
 
-// Set the value associated with a name in a given scope, creating a new binding if necessary.
+// Internal function to set or update the value associated with a given name within the scope, 
+// handling scope nesting and global scope mutations as needed.
 Expr set_scope_value_impl(Gc *gc, Expr &scope, Expr name, Expr value)
 {
     if (cons_p(scope)) {
@@ -54,7 +62,8 @@ Expr set_scope_value_impl(Gc *gc, Expr &scope, Expr name, Expr value)
     }
 }
 
-// Create a new, empty scope.
+// Instantiates a new, empty scope with no bindings, 
+// serving as the foundation for scope creation in the runtime environment.
 Scope create_scope(Gc *gc)
 {
     Scope scope = {
@@ -63,13 +72,15 @@ Scope create_scope(Gc *gc)
     return scope;
 }
 
-// Set the value associated with a name in a given scope, creating a new binding if necessary.
+// Public interface to set or update a value by name within a scope, 
+// making use of the internal implementation.
 void set_scope_value(Gc *gc, Scope *scope, Expr name, Expr value)
 {
     scope->expr = set_scope_value_impl(gc, scope->expr, name, value);
 }
 
-// Push a new scope frame onto the given scope, associating the variables with the arguments.
+// Adds a new scope frame on top of the existing scope stack, 
+// mapping each variable in `vars` to the corresponding argument in `args`.
 void push_scope_frame(Gc *gc, Scope *scope, Expr vars, Expr args)
 {
     assert(gc);
@@ -88,7 +99,8 @@ void push_scope_frame(Gc *gc, Scope *scope, Expr vars, Expr args)
     scope->expr = CONS(gc, frame, scope->expr);
 }
 
-// Pop the top scope frame from the given scope.
+// Removes the topmost scope frame from the given scope structure, 
+// effectively ending the scope frame's lifetime and its variable bindings.
 void pop_scope_frame(Gc *gc, Scope *scope)
 {
     assert(gc);

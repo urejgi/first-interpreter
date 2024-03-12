@@ -1,5 +1,12 @@
 // repl-runtime.cpp
 
+/*
+* The general purpose of this code is to augment a REPL (Read-Eval-Print Loop) 
+    environment for a Lisp-like interpreter with specific native functions 
+    that enhance its functionality and interactivity.
+*/
+
+
 #pragma once
 
 #include <cassert>
@@ -16,7 +23,10 @@
 static Gc *gc;
 static Scope *scope;
 
-// Native function to inspect Garbage Collector.
+/*
+* Ensures the garbage collector and current scope are valid before inspecting the GC.
+    Intended to be used as a diagnostic tool to provide insights into the state of the garbage collector.
+*/
 static EvalResult gcInspectAdapter(void *param, Gc *_gc, Scope *_scope, Expr args)
 {
     assert(_gc);
@@ -29,7 +39,10 @@ static EvalResult gcInspectAdapter(void *param, Gc *_gc, Scope *_scope, Expr arg
     return eval_success(NIL(_gc));
 }
 
-// Native function to quit the REPL.
+/*
+* Introduces a native function that allows the program to exit gracefully when invoked. 
+    This function can be called from within the Lisp environment to terminate the REPL session.
+*/
 static EvalResult quit(void *param, Gc *_gc, Scope *_scope, Expr args)
 {
     assert(_gc);
@@ -42,7 +55,10 @@ static EvalResult quit(void *param, Gc *_gc, Scope *_scope, Expr args)
     return eval_success(NIL(_gc));
 }
 
-// Native function to get the value of a scope.
+/*
+* Provides a mechanism to retrieve and represent the current scope as an expression, 
+    allowing for introspection of the current lexical environment.
+*/
 static EvalResult getScope(void *param, Gc *_gc, Scope *_scope, Expr args)
 {
     assert(_gc);
@@ -53,7 +69,10 @@ static EvalResult getScope(void *param, Gc *_gc, Scope *_scope, Expr args)
     return eval_success(_scope->expr);
 }
 
-// Native function for console output.
+/*
+* Implements a native function for outputting text to the console, 
+    supporting basic interactivity and output operations within the REPL environment.
+*/
 static EvalResult print(void *param, Gc *_gc, Scope *_scope, Expr args)
 {
     assert(_gc);
@@ -71,7 +90,12 @@ static EvalResult print(void *param, Gc *_gc, Scope *_scope, Expr args)
     return eval_success(NIL(_gc));
 }
 
-// Native function to load REPL's runtime.
+/*
+* Registers the above-defined native functions into the global scope of the REPL environment, 
+    making them accessible for calls from within the Lisp programs being interpreted. 
+    
+    This setup phase is critical for extending the built-in functionalities available in the REPL.
+*/
 void load_repl_runtime(Gc *_gc, Scope *_scope)
 {
     gc = _gc;

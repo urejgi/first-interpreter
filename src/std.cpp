@@ -6,13 +6,26 @@
 
 #include "std.hpp"
 
+/*
+*Primary functionalities: 
+    type conversion, lambda function creation, quasiquote handling,
+    checking if an expression is sorted, and error handling for misused expressions.
+
+    Check the comments to the functions for more details.
+*/
+
 // Represents the result of an evaluation, which can be an error or a value.
 struct EvalResult {
     bool is_error;
     Expr expr;
 };
 
-// Converts a number to a real number.
+/*
+* This structure is responsible for converting numeric expressions to real numbers.
+    If the expression is already a real number, it returns the expression unchanged.
+    If it's an integer, it converts it to a real number. 
+    If the expression is neither, it reports an error indicating a wrong argument type.
+*/
 struct RealFn {
     Gc* gc;
     Expr operator()(Expr a) {
@@ -28,7 +41,11 @@ struct RealFn {
     }
 };
 
-// Creates a lambda function.
+/*
+*  This structure creates a lambda function, 
+    encapsulating a piece of code ("body") that can be executed later with 
+    a given set of arguments ("args") within a specific lexical scope. 
+*/
 struct LambdaFn {
     Gc* gc;
     Expr args;
@@ -48,7 +65,15 @@ struct LambdaFn {
   Example: (1 ,(+ 2 3) 4)
 */
 
-// Evaluates a quasiquote expression. 
+/*
+* Quasiquote expressions allow parts of a code list to be evaluated only when 
+    the list itself is evaluated.
+
+    This facilitates writing macros or generating code on the fly. 
+    
+    The QuasiquoteFn struct manages these expressions, evaluating them as needed,
+    handling both quoted and unquoted parts within a quasiquote.
+*/
 struct QuasiquoteFn {
     Gc* gc;
     Scope* scope;
@@ -84,8 +109,11 @@ struct QuasiquoteFn {
     }
 };
 
-// Represents a function that cannot be called with unquote outside of quasiquote.
-// For what???
+/*
+* This structure represents a function call that's invalid in the context outside of a quasiquote expression. 
+    
+    Its purpose is to catch and report errors when unquote is misused, not nested within a quasiquote.
+*/
 struct UnquoteFn {
     Gc* gc;
     Scope* scope;
@@ -99,7 +127,11 @@ struct UnquoteFn {
     }
 };
 
-// Compares if two numbers are greater than each other.
+/*
+* This struct checks if one number is greater than another. 
+    It's flexible enough to handle both integers and real numbers by converting integers to reals when necessary.
+    This functionality is crucial in expressions where comparative logic is applied.
+*/
 struct GreaterThan2Fn {
     Gc* gc;
 
@@ -120,7 +152,15 @@ struct GreaterThan2Fn {
     }
 };
 
-// Checks if a list of numbers is sorted in ascending order.
+/*
+* This is an extension of the previous function to handle lists of numbers, 
+    checking whether the list is sorted in ascending order. 
+    
+    It iterates through the list, comparing each pair of adjacent elements 
+    to ensure that each is greater than or equal to the previous. 
+    
+    This could be used for assertions or validations within the Lisp program.
+*/
 struct GreaterThanFn {
     Gc* gc;
     Scope* scope;
@@ -155,7 +195,11 @@ struct GreaterThanFn {
     }
 };
 
-// Applies a function to each element in a list.
+/*
+*  A function intended to apply a given operation to each element in a list, 
+    though currently implemented as a simple pass-through, 
+    returning the provided arguments without modification.
+*/
 struct ListOpFn {
     Gc* gc;
     Scope* scope;
@@ -168,7 +212,10 @@ struct ListOpFn {
     }
 };
 
-// Adds two numbers.
+/*
+* Defines a method for adding two numeric expressions, handling both integer and real types.
+    It checks the type of the inputs and performs the addition accordingly.
+*/
 struct Plus2Fn {
     Gc* gc;
 
@@ -189,7 +236,11 @@ struct Plus2Fn {
     }
 };
 
-// Adds all the numbers in a list.
+/*
+* Iterates through a given list of numeric expressions, summing them up.
+    This function checks to ensure that the list's structure is correct 
+    (each element is part of a list) and then accumulates their sum.
+*/
 struct PlusOpFn {
     Gc* gc;
     Scope* scope;
@@ -221,7 +272,11 @@ struct PlusOpFn {
     }
 };
 
-// Multiplies two numbers.
+/*
+* Defines an operation to multiply two numeric expressions, 
+    handling both integers and real numbers by conducting type-specific arithmetic operations. 
+    It offers flexibility to accommodate dynamic type evaluation.
+*/
 struct Mul2Fn {
     Gc* gc;
 
@@ -242,7 +297,11 @@ struct Mul2Fn {
     }
 };
 
-// Multiplies all the numbers in a list.
+/*
+* Iterates over each element in a list, applying a multiplication operation to aggregate a product. 
+    This structure ensures the structure of the list is valid for operations 
+    and uses an accumulator to maintain the ongoing product.
+*/
 struct MulOpFn {
     Gc* gc;
     Scope* scope;
@@ -274,7 +333,10 @@ struct MulOpFn {
     }
 };
 
-// Returns the first key in an association list that matches the given key.
+/*
+* Searches for a given key within an association list, returning the first matching key-value pair.
+    This function is useful for retrieving data from structured lists that represent key-value pairs.
+*/
 struct AssocOpFn {
     Gc* gc;
     Scope* scope;
@@ -294,7 +356,10 @@ struct AssocOpFn {
     }
 };
 
-// Sets the value of a variable in a scope.
+/*
+* Updates or sets the value of a variable within a given scope. 
+    It performs an evaluation of the provided expression before setting the variable's value.
+*/
 struct SetFn {
     Gc* gc;
     Scope* scope;
@@ -321,7 +386,12 @@ struct SetFn {
     }
 };
 
-// Returns the given expression without evaluating it.
+/*
+*  Takes an expression and returns it unevaluated. 
+    This function embodies the concept of quoting, 
+    which allows for treating code as data without immediate execution,
+    a fundamental aspect of metaprogramming and symbolic computation in Lisp.
+*/
 struct QuoteFn {
     Gc* gc;
     Scope* scope;
@@ -340,7 +410,11 @@ struct QuoteFn {
     }
 };
 
-// Evaluates a sequence of expressions.
+/*
+*  Evaluates a block (sequence) of expressions in order, returning the result of the last expression.
+    This function enables grouping of expressions, 
+    useful in scenarios where multiple steps or operations need to be executed sequentially.
+*/
 struct BeginFn {
     Gc* gc;
     Scope* scope;
@@ -359,7 +433,12 @@ struct BeginFn {
     }
 };
 
-// Defines a new function.
+/*
+* Defines a new function within the current scope.
+* It takes three parameters: a name for the function, a list of argument names, and the function body.
+* This enables users to create custom functions that can be called elsewhere in the program.
+*/
+
 struct DefunFn {
     Gc* gc;
     Scope* scope;
@@ -387,7 +466,11 @@ struct DefunFn {
     }
 };
 
-// Evaluates a when expression.
+/*
+* Represents a conditional operation similar to 'if' statements in other programming languages.
+* It evaluates a given condition; if the condition is true (non-nil), it executes a block of code.
+* Useful for controlling the flow of execution based on specific conditions.
+*/
 struct WhenFn {
     Gc* gc;
     Scope* scope;
@@ -418,7 +501,12 @@ struct WhenFn {
     }
 };
 
-// Applies a lambda function to a list of arguments.
+/*
+* Creates an anonymous function (lambda) with a specified list of parameters and a body.
+* Lambda functions are powerful constructs for scenarios requiring function objects, 
+    closures, or higher-order functions.
+* The created lambda function can be passed as an argument, returned from other functions, or bound to a variable.
+*/
 struct LambdaOpFn {
     Gc* gc;
     Scope* scope;
@@ -443,7 +531,11 @@ struct LambdaOpFn {
     }
 };
 
-// Checks if two expressions are equal.
+/*
+* Checks for equality between two expressions.
+* It evaluates to a truthy value if both expressions are equal, 
+    according to the defined equality semantics of the language.
+*/
 struct EqualOpFn {
     Gc* gc;
     Scope* scope;
@@ -468,7 +560,12 @@ struct EqualOpFn {
     }
 };
 
-//  Loads a file and evaluates its contents.
+/*
+* Responsible for loading and executing Lisp code from an external file.
+* This function parses the file specified by the filename argument, 
+    reading all expressions contained within.
+* Once parsed, the expressions are sequentially evaluated within the given scope.
+*/
 struct LoadFn {
     Gc* gc;
     Scope* scope;
@@ -493,7 +590,12 @@ struct LoadFn {
     }
 };
 
-// Appends a list of lists.
+/*
+* Concatenates multiple lists into a single list.
+* It takes a list of lists as an argument and merges them, preserving the order.
+* This operation is recursive, ensuring that all nested lists are appended in order.
+* Handy for operations requiring the combination of multiple sequences into one.
+*/
 struct AppendFn {
     Gc* gc;
     Scope* scope;
@@ -531,7 +633,11 @@ private:
     }
 };
 
-// Loads the standard library.
+/*
+* Initializes the Lisp environment with the standard library functions and constants.
+* This includes basic arithmetic operations, list manipulation functions, 
+    control structures, and special forms.
+*/
 void load_std_library(Gc* gc, Scope* scope) {
     set_scope_value(gc, scope, SYMBOL(gc, "car"), NATIVE(gc, car, NULL));
     set_scope_value(gc, scope, SYMBOL(gc, ">"), NATIVE(gc, greaterThan, NULL));
@@ -557,3 +663,4 @@ void load_std_library(Gc* gc, Scope* scope) {
 
 
 
+// Yea, 666 lines of code :)

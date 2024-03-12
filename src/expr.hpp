@@ -22,6 +22,14 @@ enum ExprType
     EXPR_VOID
 };
 
+/*
+    * A union-like structure capable of representing an atom, 
+    a cons cell (a node in a linked list), 
+    or a void (empty) expression. 
+
+    It is the central type for representing S-expressions.
+*/
+
 struct Expr
 {
     ExprType type;
@@ -31,6 +39,7 @@ struct Expr
         Atom* atom;
     };
 };
+
 
 const std::string expr_type_as_string(ExprType expr_type);
 
@@ -80,6 +89,11 @@ enum AtomType
 
 const std::string atom_type_as_string(AtomType atom_type);
 
+/*
+*  A structure for representing atomic values like symbols, 
+    integers, real numbers, strings, lambda expressions, and native functions.
+*/
+
 struct Atom
 {
     AtomType type;
@@ -104,12 +118,20 @@ Atom* create_native_atom(Gc* gc, NativeFunction fun, void* param);
 
 void destroy_atom(Atom* atom);
 
+/*
+* A structure representing a cons cell,
+    which is a pair consisting of two elements: car and cdr. 
+
+    In the context of Lisp, car typically holds a value or an atom, 
+    while cdr holds another Cons (thus forming a list) or an atom to signify the end of the list.
+*/
 
 struct Cons
 {
     Expr car;
     Expr cdr;
 };
+
 
 Cons* create_cons(Gc* gc, Expr car, Expr cdr);
 

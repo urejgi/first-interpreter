@@ -6,7 +6,7 @@
 
 #include "tokenizer.hpp"
 
-// Converts a string range into a Token object.
+// Creates a Token object representing a portion of a string from 'begin' to 'end'.
 Token token(const std::string& begin, const std::string& end)
 {
     Token token = {
@@ -17,7 +17,8 @@ Token token(const std::string& begin, const std::string& end)
     return token;
 }
 
-// Checks if a character is a forbidden symbol character.
+// Determines whether a character is allowed in a symbol, 
+// excluding certain forbidden characters and whitespace.
 static bool is_symbol_char(char x)
 {
     static constexpr char forbidden_symbol_chars[] = {
@@ -34,12 +35,13 @@ static bool is_symbol_char(char x)
     return true;
 }
 
-// Advances the iterator to the next non-whitespace character.
+// Advances the given iterator to the next character that is not whitespace in the string.
 std::string::const_iterator skip_whitespace(std::string::const_iterator begin){
     return std::find_if(begin, str.end(), [](char c) { return !std::isspace(c); });
 }
 
-// Finds the next quote character in a string.
+// Identifies the next occurrence of a double quote character (") in the string,
+//  used to parse strings in the input.
 static const std::string next_quote(const std::string& str)
 {
     assert(str);
@@ -51,7 +53,8 @@ static const std::string next_quote(const std::string& str)
     return str;
 }
 
-// Finds the next newline character in a string.
+// Advances through the string until a newline character is encountered, 
+// used for handling comments.
 static const std::string skip_until_newline(const std::string& str)
 {
     assert(str);
@@ -63,13 +66,16 @@ static const std::string skip_until_newline(const std::string& str)
     return str;
 }
 
-// Finds the next non-symbol character in a string.
+// Finds the next character in the string that does not correspond to a symbol character, 
+// aiding in tokenization of the input.
 std::string::const_iterator next_non_symbol(std::string::const_iterator begin)
 {
     return std::find_if_not(begin, str.end(), is_symbol_char);
 }
 
-// Returns the next token in the input string.
+// Parses the next token from the input string, 
+// applying rules for different token types such as symbols, strings, 
+// and special characters.
 Token next_token(const std::string& str)
 {
     assert(str);

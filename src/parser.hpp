@@ -31,8 +31,17 @@ struct ParseResult
         : is_error(is_error_), end(end_), error_message(error_message_) {}
 };
 
-ParseResult parse_success(Expr expr, const std::string end);
-ParseResult parse_failure(const std::string& error, const std::string end);
+static ParseResult parse_cdr(Gc* gc, Token current_token);
+static ParseResult parse_list_end(Gc* gc, Token current_token);
+static ParseResult parse_list(Gc* gc, Token current_token);
+static ParseResult parse_string(Gc* gc, Token current_token);
+static ParseResult parse_integer(Gc* gc, Token current_token);
+static ParseResult parse_real(Gc* gc, Token current_token);
+static ParseResult parse_symbol(Gc* gc, Token current_token);
+static ParseResult parse_expr(Gc* gc, Token current_token);
+
+ParseResult parse_success(Expr expr, const std::string& end);
+ParseResult parse_failure(const std::string& error_message, const std::string& end);
 
 ParseResult read_expr_from_string(Gc* gc, const std::string& str);
 ParseResult read_all_exprs_from_string(Gc* gc, const std::string& str);

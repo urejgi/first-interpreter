@@ -5,7 +5,12 @@
 
 #include "expr.hpp"
 
-struct Gc;
+struct Gc {
+    std::vector<std::unique_ptr<Expr>> exprs;
+    std::vector<bool> visited;
+    size_t size;
+    size_t capacity;
+};
 
 
 Gc* create_gc();

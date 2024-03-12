@@ -1,3 +1,11 @@
+// builtins.cpp
+
+/*
+The code in this file provides essential functionality for a Lisp interpreter,
+enabling it to distinguish between diffeernt type of expressions, 
+check for their equality, and identify special forms.
+*/
+
 #pragma once
 
 #include <algorithm>
@@ -11,7 +19,17 @@
 
 #include "builtins.hpp"
 
-// Check if two atoms are equal. 
+
+// Expression Equality.
+
+
+/*
+*  Compares two atoms to see if they are equal.
+    Atoms can be symbols, integers, real numbers, strings, lambda functions, or native functions.
+
+    Equality conditions vary based on the atom type, e.g., an epsilon comparison is used for real numbers 
+    to handle floating-point precision issues.
+*/
 static bool equal_atoms(const Atom* atom1, const Atom* atom2) {
     assert(atom1);
     assert(atom2);
@@ -43,14 +61,23 @@ static bool equal_atoms(const Atom* atom1, const Atom* atom2) {
     return false;
 }
 
-// Check if two cons cells are equal. 
+/*
+* Compares two cons cells for equality by recursively checking equality of both their car and cdr parts.
+    
+    Cons is the fundamental building blocks of lists in Lisp, cons cells have two parts: car and cdr, 
+    representing the first element and the rest of the list, respectively.
+    
+*/
 static bool equal_cons(const Cons* cons1, const Cons* cons2) {
     assert(cons1);
     assert(cons2);
     return equal(&cons1->car, &cons2->car) && equal(&cons1->cdr, &cons2->cdr);
 }
 
-// Check if two expressions are equal.
+/*
+* Determines if two expressions are equal by comparing their types 
+    (atom, cons cell, or void) and then delegating to equal_atoms or equal_cons as appropriate.
+*/
 bool equal(const Expr& obj1, const Expr& obj2) {
     if (obj1.type != obj2.type) {
         return false;
@@ -69,6 +96,17 @@ bool equal(const Expr& obj1, const Expr& obj2) {
 
     return true;
 }
+
+
+// Type Checks.
+
+/*
+* - The *_p functions (nil_p, symbol_p, integer_p, real_p, string_p, cons_p, list_p, list_of_symbols_p, lambda_p) 
+    are predicates used to check the type of an expression.
+    
+    They take an object of Expr type and check if this object is their type.
+*/
+
 
 // Check if an expression is nil.
 bool nil_p(const Expr& obj) {
@@ -156,7 +194,19 @@ bool is_special(const std::string& name) {
     return binary_search(specials.begin(), specials.end(), name);
 }
 
-// Create a list from a format string and arguments.
+/*
+* The list_rec function aims to create a linked list (a cons list in Lisp terms) from a given format string and a variable number of arguments. The format string specifies the types of objects that will be inserted into the list:
+
+- 'd' indicates an integer (ATOM_INTEGER).
+- 's' indicates a string (ATOM_STRING).
+- 'q' indicates a symbol (ATOM_SYMBOL).
+- 'e' indicates an expression should be inserted directly.
+
+    The function iterates over the characters in the format string, 
+    creating a new atom for each character based on the specified type 
+    and inserting it into the cons cell at the tail of the list.
+*/
+
 Cons* list_rec(const std::string& format, ...) {
     va_list args;
     va_start(args, format);
@@ -202,6 +252,15 @@ Cons* list_rec(const std::string& format, ...) {
 
     return head;
 }
+
+/*
+* The list function is a wrapper around list_rec 
+    but returns an Expr type, making it suitable for directly interacting with the Lisp interpreter's environment.
+
+    It uses the list_rec function to construct a cons cell from the format string and arguments,
+    and then wraps this list in an Expr typed structure.
+*/
+
 Expr list(const std::string& format, ...) {
     va_list args;
     va_start(args, format);
@@ -212,8 +271,11 @@ Expr list(const std::string& format, ...) {
     return result;
 }
 
-// Create an expression from a boolean value.
+/*
+* The bool_as_expr function takes a boolean value and returns a Lisp expression that represents a Lisp boolean.
+*/
 Expr bool_as_expr(bool condition) {
     return condition ? Expr{ .type = Expr::EXPR_ATOM, .atom = {.type = Atom::ATOM_ATOM, .atom = T} }
     : Expr{ .type = Expr::EXPR_ATOM, .atom = {.type = Atom::ATOM_ATOM, .atom = NIL} };
 }
+    
